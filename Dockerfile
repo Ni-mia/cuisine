@@ -1,4 +1,4 @@
-# Utilise une image PHP officielle avec Apache
+# Utiliser une image PHP officielle avec Apache
 FROM php:8.1-apache
 
 # Installer les dépendances nécessaires pour Symfony
@@ -6,6 +6,9 @@ RUN apt-get update && apt-get install -y \
     libpng-dev libjpeg-dev libfreetype6-dev libzip-dev git unzip \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd zip pdo pdo_mysql
+
+# Ajouter les extensions PHP pour Composer
+RUN apt-get install -y libicu-dev && docker-php-ext-install intl
 
 # Activer mod_rewrite pour Symfony
 RUN a2enmod rewrite
