@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block title "Les projets" %}
+
+{% block body %}
+<div class="container">
+    <h1>Liste des projets</h1>
+
+    <ul class="list-group">
+        {% for project in projects %}
+            <li class="list-group-item d-flex justify-content-between">
+                <span>{{ project.title }} (Tâche : {{ project.taskCount }})</span>
+
+                <div class="btn-group" role="group">
+                    <a href="{{ path('project.fiche', {id: project.id}) }}" class="btn btn-info">Fiche</a>
+                    <a href="{{ path('project.edit', {id: project.id}) }}" class="btn btn-warning">Éditer</a>
+
+                    <form action="{{ path('project.delete', {id: project.id}) }}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce projet ?')">Supprimer</button>
+                    </form>
+                </div>
+            </li>
+        {% else %}
+            <li class="list-group-item">Aucun projet trouvé.</li>
+        {% endfor %}
+    </ul>
+
+    <div class="d-flex justify-content-between mt-3">
+        {% if page > 1 %}
+            <a href="{{ path('project.index', {page: page - 1}) }}" class="btn btn-secondary">Page précédente</a>
+        {% endif %}
+
+        {% if page < maxPage %}
+            <a href="{{ path('project.index', {page: page + 1}) }}" class="btn btn-secondary">Page suivante</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
