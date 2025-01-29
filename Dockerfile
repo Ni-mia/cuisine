@@ -20,10 +20,10 @@ WORKDIR /var/www/html
 COPY . .
 
 # Installer Composer (gestionnaire PHP)
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+# RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Installer les dépendances du projet Symfony
-RUN composer install --no-dev --optimize-autoloader
+# RUN composer install --no-dev --optimize-autoloader
 
 # Exposer le port 80 pour Apache
 EXPOSE 80
