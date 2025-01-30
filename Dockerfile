@@ -1,32 +1,23 @@
-# Utiliser une image PHP officielle avec Apache
-FROM php:8.1-apache
+# Utiliser PHP 8.2.12 CLI
+FROM php:8.2.12-cli
 
-# Installer les dépendances nécessaires pour Symfony
+# Installer les dépendances nécessaires
 RUN apt-get update && apt-get install -y \
-    libpng-dev libjpeg-dev libfreetype6-dev libzip-dev git unzip \
+    zip unzip git curl libpng-dev libjpeg-dev libfreetype6-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd zip pdo pdo_mysql
+    && docker-php-ext-install gd pdo pdo_mysql opcache
 
-# Ajouter les extensions PHP pour Composer
-RUN apt-get install -y libicu-dev && docker-php-ext-install intl
+# Définir le répertoire de travail
+WORKDIR /app
 
-# Activer mod_rewrite pour Symfony
-RUN a2enmod rewrite
-
-# Configurer le répertoire de travail
-WORKDIR /var/www/html
-
-# Copier le contenu du projet Symfony dans le conteneur
+# Copier tous les fichiers du projet dans /app
 COPY . .
 
-# Installer Composer (gestionnaire PHP)
-# RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+# Changer les permissions du dossier var pour éviter les erreurs d'écriture
+RUN chmod -R 777 var
 
-# Installer les dépendances du projet Symfony
-# RUN composer install --no-dev --optimize-autoloader
+# Exposer le port 8000 (juste à titre indicatif, Render le gère automatiquement)
+EXPOSE 8000
 
-# Exposer le port 80 pour Apache
-EXPOSE 80
-
-# Démarrer Apache
-CMD ["apache2-foreground"]
+# Lancer le serveur PHP et pointer vers public/
+CMD ["php", "-S", "0.0.0.0:8000", "-t", "public"]

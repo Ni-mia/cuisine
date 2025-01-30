@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: symfony-app
+    env: docker
+    plan: free
+    buildCommand: "docker build -t symfony-app ."
+    startCommand: "docker run -p 8000:8000 symfony-app"
+    branches:
+      - main
+    envVars:
+      - key: APP_ENV
+        value: prod
+      - key: APP_SECRET
+        value: "fd401bf21429d0ced655920a61be4b15"
+      - key: DATABASE_URL
+        value: "mysql://root:WETQCLHexqVViHOZOsBudemUAeYfKBXb@monorail.proxy.rlwy.net:51781/railway"
+      - key: JWT_SECRET
+        value: "api_secret"
+      - key: CORS_ALLOW_ORIGIN
+        value: '^https?://(localhost|127\.0\.0\.1|https://cuisine-qemt.onrender.com)(:[0-9]+)?$'
