@@ -33,9 +33,16 @@ class Ingredients extends AbstractDeletableEntity
     #[Groups(['ingredients.list'])]
     private ?\DateTimeImmutable $deletedAt = null;
 
+    /**
+     * @var Collection<int, Stock>
+     */
+    #[ORM\OneToMany(targetEntity: Stock::class, mappedBy: 'idIngredient')]
+    private Collection $stocks;
+
     public function __construct()
     {
         $this->liaisonPlatIngredients = new ArrayCollection();
+        $this->stocks = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -100,6 +107,36 @@ class Ingredients extends AbstractDeletableEntity
     public function setDeletedAt(?\DateTimeImmutable $deletedAt): static
     {
         $this->deletedAt = $deletedAt;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Stock>
+     */
+    public function getStocks(): Collection
+    {
+        return $this->stocks;
+    }
+
+    public function addStock(Stock $stock): static
+    {
+        if (!$this->stocks->contains($stock)) {
+            $this->stocks->add($stock);
+            $stock->setIdIngredient($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStock(Stock $stock): static
+    {
+        if ($this->stocks->removeElement($stock)) {
+            // set the owning side to null (unless already changed)
+            if ($stock->getIdIngredient() === $this) {
+                $stock->setIdIngredient(null);
+            }
+        }
 
         return $this;
     }
