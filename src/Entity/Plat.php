@@ -41,9 +41,23 @@ class Plat extends AbstractDeletableEntity
     #[Groups('plats.list')]
     private ?\DateTimeImmutable $deletedAt = null;
 
+    /**
+     * @var Collection<int, Prix>
+     */
+    #[ORM\OneToMany(targetEntity: Prix::class, mappedBy: 'idPlat')]
+    private Collection $prixes;
+
+    /**
+     * @var Collection<int, DetailsCommande>
+     */
+    #[ORM\OneToMany(targetEntity: DetailsCommande::class, mappedBy: 'idPlat')]
+    private Collection $detailsCommandes;
+
     public function __construct()
     {
         $this->liaisonPlatIngredients = new ArrayCollection();
+        $this->prixes = new ArrayCollection();
+        $this->detailsCommandes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -132,6 +146,66 @@ class Plat extends AbstractDeletableEntity
     public function setDeletedAt(?\DateTimeImmutable $deletedAt): static
     {
         $this->deletedAt = $deletedAt;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Prix>
+     */
+    public function getPrixes(): Collection
+    {
+        return $this->prixes;
+    }
+
+    public function addPrix(Prix $prix): static
+    {
+        if (!$this->prixes->contains($prix)) {
+            $this->prixes->add($prix);
+            $prix->setIdPlat($this);
+        }
+
+        return $this;
+    }
+
+    public function removePrix(Prix $prix): static
+    {
+        if ($this->prixes->removeElement($prix)) {
+            // set the owning side to null (unless already changed)
+            if ($prix->getIdPlat() === $this) {
+                $prix->setIdPlat(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, DetailsCommande>
+     */
+    public function getDetailsCommandes(): Collection
+    {
+        return $this->detailsCommandes;
+    }
+
+    public function addDetailsCommande(DetailsCommande $detailsCommande): static
+    {
+        if (!$this->detailsCommandes->contains($detailsCommande)) {
+            $this->detailsCommandes->add($detailsCommande);
+            $detailsCommande->setIdPlat($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDetailsCommande(DetailsCommande $detailsCommande): static
+    {
+        if ($this->detailsCommandes->removeElement($detailsCommande)) {
+            // set the owning side to null (unless already changed)
+            if ($detailsCommande->getIdPlat() === $this) {
+                $detailsCommande->setIdPlat(null);
+            }
+        }
 
         return $this;
     }
