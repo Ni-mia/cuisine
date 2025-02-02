@@ -17,11 +17,11 @@ class Paiement extends AbstractDeletableEntity
     private ?int $id = null;
 
     #[ORM\OneToOne(cascade: ['persist', 'remove'])]
-    #[Groups('paiement.commande')]
-    private ?commande $idCommande = null;
+    #[Groups('paiement.commande','paiement.create','paiement.list')]
+    private ?Commande $idCommande = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 0)]
-    #[Groups(['paiement.show', 'paiement.create', 'paiement.update','paiement.list'])]
+    #[Groups(['paiement.show', 'paiement.update','paiement.list'])]
     private ?string $Total = null;
 
     #[ORM\Column]

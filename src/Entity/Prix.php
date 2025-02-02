@@ -30,7 +30,7 @@ class Prix extends AbstractDeletableEntity
 
     #[ORM\ManyToOne(inversedBy: 'prixes')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups('prix.ingredients')]
+    #[Groups('prix.plat','prix.create')]
     private ?plat $idPlat = null;
 
     #[ORM\Column(nullable: true)]

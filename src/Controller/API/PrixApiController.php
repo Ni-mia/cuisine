@@ -16,7 +16,7 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use App\Service\DeleteService;
 use Symfony\Component\HttpFoundation\Response;
 use App\Annotation\TokenRequired;
-
+use App\Entity\Plat;
 
 class PrixApiController extends AbstractController
 {
@@ -40,14 +40,28 @@ class PrixApiController extends AbstractController
 
     #[Route("/api/prix", methods: "POST")]
     function create(
-        #[MapRequestPayload(serializationContext: [
-        'groups' => ['prix.create']
-        ])] Prix $prix,
-        EntityManagerInterface $em){
+        Request $request,
+        EntityManagerInterface $em
+    ) {
+        $data = json_decode($request->getContent(), true);
+
+        $plat = $em->getRepository(Plat::class)->find($data['idPlat']);
+
+        if (!$plat) {
+            return $this->json(['error' => 'Plat ou Ingrédient non trouvé'], 404);
+        }
+
+        $prix = new Prix();
+        $prix->setIdPlat($plat);
+        $prix->setMontant($data['montant']);
+        $prix->setDateDebut(new \DateTime($request->get('date_debut')));
+        $prix->setDateFin(new \DateTime($request->get('date_fin')));
+
         $em->persist($prix);
         $em->flush();
+
         return $this->json($prix, 200, [], [
-            'groups' => ['prix.show']
+            'groups' => ['prix.create']
         ]);
     }
     
