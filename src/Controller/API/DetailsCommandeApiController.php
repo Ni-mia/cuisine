@@ -16,7 +16,8 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use App\Service\DeleteService;
 use Symfony\Component\HttpFoundation\Response;
 use App\Annotation\TokenRequired;
-
+use App\Entity\Commande;
+use App\Entity\Plat;
 
 class DetailsCommandeApiController extends AbstractController
 {
@@ -40,14 +41,28 @@ class DetailsCommandeApiController extends AbstractController
 
     #[Route("/api/detailsCommande", methods: "POST")]
     function create(
-        #[MapRequestPayload(serializationContext: [
-        'groups' => ['detailsCommande.create']
-        ])] DetailsCommande $detailsCommande,
-        EntityManagerInterface $em){
+        Request $request,
+        EntityManagerInterface $em
+    ) {
+        $data = json_decode($request->getContent(), true);
+
+        $plat = $em->getRepository(Plat::class)->find($data['idPlat']);
+        $commande = $em->getRepository(Commande::class)->find($data['idCommande']);
+
+        if (!$plat || !$commande) {
+            return $this->json(['error' => 'Plat ou Ingrédient non trouvé'], 404);
+        }
+
+        $detailsCommande = new DetailsCommande();
+        $detailsCommande->setIdPlat($plat);
+        $detailsCommande->setIdCommande($commande);
+        $detailsCommande->setStatut($data['statut']);
+
         $em->persist($detailsCommande);
         $em->flush();
+
         return $this->json($detailsCommande, 200, [], [
-            'groups' => ['detailsCommande.show']
+            'groups' => ['detailsCommande.create']
         ]);
     }
     
