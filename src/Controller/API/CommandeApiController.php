@@ -16,7 +16,8 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use App\Service\DeleteService;
 use Symfony\Component\HttpFoundation\Response;
 use App\Annotation\TokenRequired;
-
+use App\Entity\Restaurant;
+use App\Entity\Utilisateur;
 
 class CommandeApiController extends AbstractController
 {
@@ -40,14 +41,28 @@ class CommandeApiController extends AbstractController
 
     #[Route("/api/commande", methods: "POST")]
     function create(
-        #[MapRequestPayload(serializationContext: [
-        'groups' => ['commande.create']
-        ])] Commande $commande,
-        EntityManagerInterface $em){
+        Request $request,
+        EntityManagerInterface $em
+    ) {
+        $data = json_decode($request->getContent(), true);
+
+        $utilisateur = $em->getRepository(Utilisateur::class)->find($data['idUtilisateur']);
+        $restauarnt = $em->getRepository(Restaurant::class)->find($data['idRestaurant']);
+
+        if (!$utilisateur || !$restauarnt) {
+            return $this->json(['error' => 'Utilisateur ou Ingrédient non trouvé'], 404);
+        }
+
+        $commande = new Commande();
+        $commande->setIdUtilisateur($utilisateur);
+        $commande->setIdRestaurant($restauarnt);
+        $commande->setDt($data['dt']);
+
         $em->persist($commande);
         $em->flush();
+
         return $this->json($commande, 200, [], [
-            'groups' => ['commande.show']
+            'groups' => ['commande.create']
         ]);
     }
     
