@@ -25,7 +25,7 @@ class Role extends AbstractDeletableEntity
      * @var Collection<int, Utilisateur>
      */
     #[ORM\OneToMany(targetEntity: Utilisateur::class, mappedBy: 'idRole')]
-    #[Groups('role.ingredients')]
+    #[Groups('role.utilisateur')]
     private Collection $utilisateurs;
 
     #[ORM\Column(nullable: true)]

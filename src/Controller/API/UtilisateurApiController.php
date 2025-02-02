@@ -16,7 +16,7 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use App\Service\DeleteService;
 use Symfony\Component\HttpFoundation\Response;
 use App\Annotation\TokenRequired;
-
+use App\Entity\Role;
 
 class UtilisateurApiController extends AbstractController
 {
@@ -40,14 +40,29 @@ class UtilisateurApiController extends AbstractController
 
     #[Route("/api/utilisateur", methods: "POST")]
     function create(
-        #[MapRequestPayload(serializationContext: [
-        'groups' => ['utilisateur.create']
-        ])] Utilisateur $utilisateur,
-        EntityManagerInterface $em){
+        Request $request,
+        EntityManagerInterface $em
+    ) {
+        $data = json_decode($request->getContent(), true);
+
+        $role = $em->getRepository(Role::class)->find($data['idRole']);
+
+        if (!$role) {
+            return $this->json(['error' => 'Role non trouvé'], 404);
+        }
+
+        $utilisateur = new Utilisateur();
+        $utilisateur->setIdRole($role);
+        $utilisateur->setNom($data['nom']);
+        $utilisateur->setMdp($data['mdp']);
+        $utilisateur->setMail($data['mail']);
+        $utilisateur->setNomUtilisateur($data['nomUtilisateur']);
+
         $em->persist($utilisateur);
         $em->flush();
+
         return $this->json($utilisateur, 200, [], [
-            'groups' => ['utilisateur.show']
+            'groups' => ['utilisateur.create']
         ]);
     }
     
