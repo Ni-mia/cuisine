@@ -36,7 +36,7 @@ class Stock extends AbstractDeletableEntity
 
     #[ORM\ManyToOne(inversedBy: 'stocks')]
     #[Groups('stock.typemvt')]
-    private ?typeMvt $idType = null;
+    private ?TypeMvt $idType = null;
 
     #[ORM\Column]
     #[Groups('stock.list')]
