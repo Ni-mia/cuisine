@@ -26,7 +26,7 @@ class Commande extends AbstractDeletableEntity
     #[ORM\ManyToOne(inversedBy: 'commandes')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups('commande.restaurant','commande.create')]
-    private ?restaurant $idRestaurant = null;
+    private ?Restaurant $idRestaurant = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     #[Groups(['commande.show', 'commande.create', 'commande.update','commande.list'])]
