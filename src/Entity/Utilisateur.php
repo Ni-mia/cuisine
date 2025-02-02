@@ -36,7 +36,7 @@ class Utilisateur
     #[ORM\ManyToOne(inversedBy: 'utilisateurs')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups('utilisateur.role')]
-    private ?role $idRole = null;
+    private ?Role $idRole = null;
 
     /**
      * @var Collection<int, Commande>
