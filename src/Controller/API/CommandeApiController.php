@@ -56,7 +56,7 @@ class CommandeApiController extends AbstractController
         $commande = new Commande();
         $commande->setIdUtilisateur($utilisateur);
         $commande->setIdRestaurant($restauarnt);
-        $commande->setDt($data['dt']);
+        $commande->setDt(new \DateTime($request->get('dt')));
 
         $em->persist($commande);
         $em->flush();
