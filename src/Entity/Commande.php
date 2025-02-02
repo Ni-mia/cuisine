@@ -21,7 +21,7 @@ class Commande extends AbstractDeletableEntity
     #[ORM\ManyToOne(inversedBy: 'commandes')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups('commande.utilisateur')]
-    private ?utilisateur $idUtilisateur = null;
+    private ?Utilisateur $idUtilisateur = null;
 
     #[ORM\ManyToOne(inversedBy: 'commandes')]
     #[ORM\JoinColumn(nullable: false)]
