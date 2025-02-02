@@ -32,7 +32,7 @@ class TaskController extends AbstractController
         // Appeler la méthode du repository pour filtrer les tâches
         // $tasks = $repository->findByFilters($this->isGranted('ROLE_ADMIN'), $searchTitle, $minEstimate, $maxEstimate);
         $tasks = $paginator->paginate(
-            $repository->findByFilters($this->isGranted('ROLE_ADMIN'), $searchTitle, $minEstimate, $maxEstimate),
+            $repository->findByFilters($this->isGranted('ROLE_ADMIN'), $minEstimate, $maxEstimate, $searchTitle),
             $request->query->getInt('page', 1), // Numéro de la page
             10 // Nombre d'éléments par page
         );

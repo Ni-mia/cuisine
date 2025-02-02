@@ -41,7 +41,7 @@ class TaskRepository extends ServiceEntityRepository
      * @param int $maxEstimate La valeur maximale pour estimates
      * @return Task[] Un tableau d'objets Task
      */
-    public function findByFilters(bool $isAdmin, string $title = '', int $minEstimate, int $maxEstimate): array
+    public function findByFilters(bool $isAdmin, int $minEstimate, int $maxEstimate,string $title = ''): array
     {
         $qb = $this->createQueryBuilder('t');
 
