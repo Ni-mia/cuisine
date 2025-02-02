@@ -18,12 +18,12 @@ class DetailsCommande extends AbstractDeletableEntity
     #[ORM\ManyToOne(inversedBy: 'detailsCommandes')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups('detailsCommande.restaurant')]
-    private ?commande $idCommande = null;
+    private ?Commande $idCommande = null;
 
     #[ORM\ManyToOne(inversedBy: 'detailsCommandes')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups('detailsCommande.restaurant')]
-    private ?plat $idPlat = null;
+    private ?Plat $idPlat = null;
 
     #[ORM\Column]
     #[Groups(['detailsCommande.show', 'detailsCommande.create', 'detailsCommande.update','detailsCommande.list'])]
