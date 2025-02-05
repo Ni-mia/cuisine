@@ -114,7 +114,7 @@ class DetailsCommandeApiController extends AbstractController
 
         return new Response(null, 204);
     }
-    #[Route("/api/detailsCommande", methods: ["POST"])]
+    #[Route("/api/detailsCommande/multi", methods: ["POST"])]
     function createMulti(
         Request $request,
         EntityManagerInterface $em
@@ -151,76 +151,4 @@ class DetailsCommandeApiController extends AbstractController
             'groups' => ['detailsCommande.create']
         ]);
     }
-
-    #[Route("/api/utilisateur/{id}/detailsCommande", methods: ["POST"])]
-function createMultiByUser(
-    int $id,
-    Request $request,
-    EntityManagerInterface $em,
-    UtilisateurRepository $userRepo,
-    CommandeRepository $commandeRepo,
-    PaiementRepository $paiementRepo,
-    PlatRepository $platRepo
-) {
-    $data = json_decode($request->getContent(), true);
-
-    $utilisateur = $userRepo->find($id);
-    if (!$utilisateur) {
-        return $this->json(['error' => 'Utilisateur non trouvé'], 404);
-    }
-
-    $commande = $commandeRepo->findOneBy(['idUtilisateur' => $id]);
-
-    if (!$commande) {
-        $commande = new Commande();
-        $commande->setIdUtilisateur($utilisateur);
-        $commande->setDt(new \DateTime());
-
-        $em->persist($commande);
-        $em->flush();
-
-        $paiement = new Paiement();
-        $paiement->setIdCommande($commande);
-        $paiement->setTotal(0);
-        $paiement->setStatut(-1);
-        $paiement->setDeletedAt(null);
-
-        $em->persist($paiement);
-        $em->flush();
-    } else {
-        $paiement = $paiementRepo->findOneBy([
-            'idCommande' => $commande,
-            'statut' => -1
-        ]);
-    }
-
-    $plat = $platRepo->find($data['idPlat']);
-    if (!$plat) {
-        return $this->json(['error' => 'Plat non trouvé'], 404);
-    }
-
-    if (!isset($data['quantite']) || $data['quantite'] <= 0) {
-        return $this->json(['error' => 'Quantité invalide'], 400);
-    }
-
-    $detailsCommandeList = [];
-    for ($i = 0; $i < $data['quantite']; $i++) {
-        $detailsCommande = new DetailsCommande();
-        $detailsCommande->setIdPlat($plat);
-        $detailsCommande->setIdCommande($commande);
-        $detailsCommande->setStatut(-1);
-        $detailsCommande->setDeletedAt(null);
-
-        $em->persist($detailsCommande);
-        $detailsCommandeList[] = $detailsCommande;
-    }
-
-    $em->flush();
-
-    return $this->json($detailsCommandeList, 201, [], [
-        'groups' => ['detailsCommande.create']
-    ]);
-}
-
-
 }
