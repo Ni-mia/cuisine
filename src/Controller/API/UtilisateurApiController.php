@@ -116,33 +116,28 @@ class UtilisateurApiController extends AbstractController
     #[Route("/api/utilisateur/{id}/commandeActu", methods: ["GET"])]
     function getCommandeActu(int $id, UtilisateurRepository $userRepo, PaiementRepository $paiementRepo, EntityManagerInterface $em, CommandeRepository $commandeRepo, RestaurantRepository $restaurantRepo)
     {
-        // Trouver l'utilisateur
         $utilisateur = $userRepo->find($id);
         if (!$utilisateur) {
             return $this->json(['error' => 'Utilisateur non trouvé'], 404);
         }
 
-        // Trouver la commande de l'utilisateur
         $commande = $commandeRepo->findOneBy(['idUtilisateur' => $id]);
 
-        // Si aucune commande n'existe, créer une nouvelle commande
         if (!$commande) {
             $commande = new Commande();
             $commande->setIdUtilisateur($utilisateur);
-            $commande->setDt(new \DateTime());
 
-            // Assigner un restaurant par défaut (par exemple, le premier restaurant)
-            $restaurant = $restaurantRepo->findOneBy([]); // Trouver un restaurant existant
-            if ($restaurant) {
-                $commande->setIdRestaurant($restaurant); // Assigner le restaurant
-            } else {
-                return $this->json(['error' => 'Aucun restaurant disponible'], 404);
+            $restaurant = $restaurantRepo->find(1);
+            if (!$restaurant) {
+                return $this->json(['error' => 'Restaurant non trouvé'], 404);
             }
+            $commande->setIdRestaurant($restaurant);
+
+            $commande->setDt(new \DateTime());
 
             $em->persist($commande);
             $em->flush();
 
-            // Créer un paiement associé à la nouvelle commande
             $paiement = new Paiement();
             $paiement->setIdCommande($commande);
             $paiement->setTotal(0);
@@ -158,13 +153,11 @@ class UtilisateurApiController extends AbstractController
             ], 201);
         }
 
-        // Si une commande existe déjà, vérifier le paiement
         $paiement = $paiementRepo->findOneBy([
             'idCommande' => $commande,
             'statut' => -1
         ], ['id' => 'DESC']);
 
-        // Si un paiement existe, renvoyer la commande actuelle
         if ($paiement) {
             return $this->json([
                 'idCommande' => $paiement->getIdCommande()->getId(),
@@ -172,23 +165,20 @@ class UtilisateurApiController extends AbstractController
             ], 200);
         }
 
-        // Créer une nouvelle commande si nécessaire
         $commande = new Commande();
         $commande->setIdUtilisateur($utilisateur);
-        $commande->setDt(new \DateTime());
 
-        // Assigner un restaurant par défaut
-        $restaurant = $restaurantRepo->findOneBy([]);
-        if ($restaurant) {
-            $commande->setIdRestaurant($restaurant);
-        } else {
-            return $this->json(['error' => 'Aucun restaurant disponible'], 404);
+        $restaurant = $restaurantRepo->find(1);
+        if (!$restaurant) {
+            return $this->json(['error' => 'Restaurant non trouvé'], 404);
         }
+        $commande->setIdRestaurant($restaurant);
+
+        $commande->setDt(new \DateTime());
 
         $em->persist($commande);
         $em->flush();
 
-        // Créer le paiement
         $paiement = new Paiement();
         $paiement->setIdCommande($commande);
         $paiement->setTotal(0);
@@ -203,7 +193,5 @@ class UtilisateurApiController extends AbstractController
             'statutPaiement' => $paiement->getStatut()
         ], 201);
     }
-
-
 
 }
