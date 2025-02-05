@@ -143,6 +143,7 @@ class UtilisateurApiController extends AbstractController
                 $paiement->setIdCommande($commande);
                 $paiement->setTotal(0);
                 $paiement->setStatut(-1);
+                $paiement->setDt(new \DateTime());
                 $paiement->setDeletedAt(null);
 
                 $em->persist($paiement);
@@ -171,6 +172,7 @@ class UtilisateurApiController extends AbstractController
         $nouveauPaiement->setIdCommande($nouvelleCommande);
         $nouveauPaiement->setTotal(0);
         $nouveauPaiement->setStatut(-1);
+        $nouveauPaiement->setDt(new \DateTime());
         $nouveauPaiement->setDeletedAt(null);
 
         $em->persist($nouveauPaiement);
