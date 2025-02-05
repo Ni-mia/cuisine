@@ -164,25 +164,21 @@ function createMultiByUser(
 ) {
     $data = json_decode($request->getContent(), true);
 
-    // Vérifier si l'utilisateur existe
     $utilisateur = $userRepo->find($id);
     if (!$utilisateur) {
         return $this->json(['error' => 'Utilisateur non trouvé'], 404);
     }
 
-    // Récupérer la commande de l'utilisateur
     $commande = $commandeRepo->findOneBy(['idUtilisateur' => $id]);
 
-    // Si aucune commande n'existe, créer une nouvelle commande
     if (!$commande) {
         $commande = new Commande();
         $commande->setIdUtilisateur($utilisateur);
         $commande->setDt(new \DateTime());
 
         $em->persist($commande);
-        $em->flush(); // Pour générer l'ID de la commande
+        $em->flush();
 
-        // Créer le paiement associé
         $paiement = new Paiement();
         $paiement->setIdCommande($commande);
         $paiement->setTotal(0);
@@ -192,25 +188,21 @@ function createMultiByUser(
         $em->persist($paiement);
         $em->flush();
     } else {
-        // Vérifier s'il y a un paiement en attente pour cette commande
         $paiement = $paiementRepo->findOneBy([
             'idCommande' => $commande,
             'statut' => -1
         ]);
     }
 
-    // Vérifier si le plat existe
     $plat = $platRepo->find($data['idPlat']);
     if (!$plat) {
         return $this->json(['error' => 'Plat non trouvé'], 404);
     }
 
-    // Vérifier la quantité
     if (!isset($data['quantite']) || $data['quantite'] <= 0) {
         return $this->json(['error' => 'Quantité invalide'], 400);
     }
 
-    // Ajouter plusieurs détails de commande
     $detailsCommandeList = [];
     for ($i = 0; $i < $data['quantite']; $i++) {
         $detailsCommande = new DetailsCommande();

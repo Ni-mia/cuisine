@@ -121,16 +121,22 @@ class UtilisateurApiController extends AbstractController
             return $this->json(['error' => 'Utilisateur non trouvé'], 404);
         }
 
-        $paiement = $paiementRepo->findOneBy(
-            ['statut' => -1, 'idCommande.idUtilisateur' => $id], 
-            ['id' => 'DESC']
-        );
+        $commande = $commandeRepo->findOneBy([
+            'idUtilisateur' => $id
+        ]);
 
-        if ($paiement) {
-            return $this->json([
-                'idCommande' => $paiement->getIdCommande()->getId(),
-                'statutPaiement' => $paiement->getStatut()
-            ], 200);
+        if ($commande) {
+            $paiement = $paiementRepo->findOneBy([
+                'idCommande' => $commande,
+                'statut' => -1
+            ], ['id' => 'DESC']);
+
+            if ($paiement) {
+                return $this->json([
+                    'idCommande' => $paiement->getIdCommande()->getId(),
+                    'statutPaiement' => $paiement->getStatut()
+                ], 200);
+            }
         }
 
         $commande = new Commande();
@@ -154,5 +160,6 @@ class UtilisateurApiController extends AbstractController
             'statutPaiement' => $paiement->getStatut()
         ], 201);
     }
+
 
 }
