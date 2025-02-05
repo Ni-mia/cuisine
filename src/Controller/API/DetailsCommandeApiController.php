@@ -153,79 +153,107 @@ class DetailsCommandeApiController extends AbstractController
     }
 
     #[Route("/api/detailsCommande/{id}/utilisateur", methods: ["POST"])]
-function createMultiByUser(
-    int $id,
-    Request $request,
-    EntityManagerInterface $em,
-    UtilisateurRepository $userRepo,
-    CommandeRepository $commandeRepo,
-    PaiementRepository $paiementRepo,
-    PlatRepository $platRepo
-) {
-    $data = json_decode($request->getContent(), true);
+    function createMultiByUser(
+        int $id,
+        Request $request,
+        EntityManagerInterface $em,
+        UtilisateurRepository $userRepo,
+        CommandeRepository $commandeRepo,
+        PaiementRepository $paiementRepo,
+        PlatRepository $platRepo
+    ) {
+        $data = json_decode($request->getContent(), true);
 
-    // Vérifier si l'utilisateur existe
-    $utilisateur = $userRepo->find($id);
-    if (!$utilisateur) {
-        return $this->json(['error' => 'Utilisateur non trouvé'], 404);
-    }
+        // Vérifier si l'utilisateur existe
+        $utilisateur = $userRepo->find($id);
+        if (!$utilisateur) {
+            return $this->json(['error' => 'Utilisateur non trouvé'], 404);
+        }
 
-    // Récupérer ou créer la commande actuelle
-    $paiement = $paiementRepo->findOneBy(
-        ['statut' => -1, 'idCommande.idUtilisateur' => $id], 
-        ['id' => 'DESC']
-    );
+        // Récupérer ou créer la commande actuelle
+        // Chercher la commande avec l'utilisateur spécifique
+        $commande = $commandeRepo->findOneBy([
+            'idUtilisateur' => $id,
+            'paiement.statut' => -1 // Filtrer sur paiement non validé
+        ]);
 
-    if ($paiement) {
-        $commande = $paiement->getIdCommande();
-    } else {
-        $commande = new Commande();
-        $commande->setIdUtilisateur($utilisateur);
-        $commande->setDt(new \DateTime());
+        // Si aucune commande n'est trouvée, créer une nouvelle commande
+        if (!$commande) {
+            // Création d'une nouvelle commande et paiement si nécessaire
+            $commande = new Commande();
+            $commande->setIdUtilisateur($utilisateur);
+            $commande->setDt(new \DateTime());
 
-        $em->persist($commande);
+            $em->persist($commande);
+            $em->flush(); // Pour récupérer l'ID de la commande
+
+            $paiement = new Paiement();
+            $paiement->setIdCommande($commande);
+            $paiement->setTotal(0);
+            $paiement->setStatut(-1);
+            $paiement->setDeletedAt(null);
+
+            $em->persist($paiement);
+            $em->flush();
+        } else {
+            // Si la commande existe déjà
+            $paiement = $paiementRepo->findOneBy([
+                'idCommande' => $commande,
+                'statut' => -1
+            ]);
+        }
+
+
+        if ($paiement) {
+            $commande = $paiement->getIdCommande();
+        } else {
+            $commande = new Commande();
+            $commande->setIdUtilisateur($utilisateur);
+            $commande->setDt(new \DateTime());
+
+            $em->persist($commande);
+            $em->flush();
+
+            // Créer le paiement associé
+            $paiement = new Paiement();
+            $paiement->setIdCommande($commande);
+            $paiement->setTotal(0);
+            $paiement->setStatut(-1);
+            $paiement->setDeletedAt(null);
+
+            $em->persist($paiement);
+            $em->flush();
+        }
+
+        // Vérifier si le plat existe
+        $plat = $platRepo->find($data['idPlat']);
+        if (!$plat) {
+            return $this->json(['error' => 'Plat non trouvé'], 404);
+        }
+
+        // Vérifier la quantité
+        if (!isset($data['quantite']) || $data['quantite'] <= 0) {
+            return $this->json(['error' => 'Quantité invalide'], 400);
+        }
+
+        // Ajouter plusieurs détails de commande
+        $detailsCommandeList = [];
+        for ($i = 0; $i < $data['quantite']; $i++) {
+            $detailsCommande = new DetailsCommande();
+            $detailsCommande->setIdPlat($plat);
+            $detailsCommande->setIdCommande($commande);
+            $detailsCommande->setStatut(-1);
+            $detailsCommande->setDeletedAt(null);
+
+            $em->persist($detailsCommande);
+            $detailsCommandeList[] = $detailsCommande;
+        }
+
         $em->flush();
 
-        // Créer le paiement associé
-        $paiement = new Paiement();
-        $paiement->setIdCommande($commande);
-        $paiement->setTotal(0);
-        $paiement->setStatut(-1);
-        $paiement->setDeletedAt(null);
-
-        $em->persist($paiement);
-        $em->flush();
+        return $this->json($detailsCommandeList, 201, [], [
+            'groups' => ['detailsCommande.create']
+        ]);
     }
-
-    // Vérifier si le plat existe
-    $plat = $platRepo->find($data['idPlat']);
-    if (!$plat) {
-        return $this->json(['error' => 'Plat non trouvé'], 404);
-    }
-
-    // Vérifier la quantité
-    if (!isset($data['quantite']) || $data['quantite'] <= 0) {
-        return $this->json(['error' => 'Quantité invalide'], 400);
-    }
-
-    // Ajouter plusieurs détails de commande
-    $detailsCommandeList = [];
-    for ($i = 0; $i < $data['quantite']; $i++) {
-        $detailsCommande = new DetailsCommande();
-        $detailsCommande->setIdPlat($plat);
-        $detailsCommande->setIdCommande($commande);
-        $detailsCommande->setStatut(-1);
-        $detailsCommande->setDeletedAt(null);
-
-        $em->persist($detailsCommande);
-        $detailsCommandeList[] = $detailsCommande;
-    }
-
-    $em->flush();
-
-    return $this->json($detailsCommandeList, 201, [], [
-        'groups' => ['detailsCommande.create']
-    ]);
-}
 
 }
