@@ -185,6 +185,7 @@ class UtilisateurApiController extends AbstractController
         $paiement->setTotal(0);
         $paiement->setStatut(-1);
         $paiement->setDeletedAt(null);
+        $paiement->setDt(new \DateTime());
 
         $em->persist($paiement);
         $em->flush();
