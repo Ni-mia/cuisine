@@ -160,7 +160,7 @@ class PaiementApiController extends AbstractController
             }
 
             // Ajouter au total (quantité * prix)
-            $total += $detail->getQuantite() * $prix->getMontant();
+            $total += $prix->getMontant();
         }
 
         // Mettre à jour le paiement
