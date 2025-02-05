@@ -16,7 +16,11 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use App\Service\DeleteService;
 use Symfony\Component\HttpFoundation\Response;
 use App\Annotation\TokenRequired;
+use App\Entity\Commande;
+use App\Entity\Paiement;
 use App\Entity\Role;
+use App\Repository\CommandeRepository;
+use App\Repository\PaiementRepository;
 
 class UtilisateurApiController extends AbstractController
 {
@@ -109,4 +113,46 @@ class UtilisateurApiController extends AbstractController
 
         return new Response(null, 204);
     }
+    #[Route("/api/utilisateur/{id}/commandeActu", methods: ["GET"])]
+    function getCommandeActu(int $id, UtilisateurRepository $userRepo, PaiementRepository $paiementRepo, EntityManagerInterface $em, CommandeRepository $commandeRepo)
+    {
+        $utilisateur = $userRepo->find($id);
+        if (!$utilisateur) {
+            return $this->json(['error' => 'Utilisateur non trouvé'], 404);
+        }
+
+        $paiement = $paiementRepo->findOneBy(
+            ['statut' => -1, 'idCommande.idUtilisateur' => $id], 
+            ['id' => 'DESC']
+        );
+
+        if ($paiement) {
+            return $this->json([
+                'idCommande' => $paiement->getIdCommande()->getId(),
+                'statutPaiement' => $paiement->getStatut()
+            ], 200);
+        }
+
+        $commande = new Commande();
+        $commande->setIdUtilisateur($utilisateur);
+        $commande->setDt(new \DateTime());
+
+        $em->persist($commande);
+        $em->flush();
+
+        $paiement = new Paiement();
+        $paiement->setIdCommande($commande);
+        $paiement->setTotal(0);
+        $paiement->setStatut(-1);
+        $paiement->setDeletedAt(null);
+
+        $em->persist($paiement);
+        $em->flush();
+
+        return $this->json([
+            'idCommande' => $commande->getId(),
+            'statutPaiement' => $paiement->getStatut()
+        ], 201);
+    }
+
 }

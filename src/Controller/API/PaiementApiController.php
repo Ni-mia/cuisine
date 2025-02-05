@@ -94,4 +94,25 @@ class PaiementApiController extends AbstractController
 
         return new Response(null, 204);
     }
+    #[Route("/api/paiement/{id}/valider", methods: ["PUT"])]
+    function validerCommande(int $id, PaiementRepository $repository, EntityManagerInterface $em)
+    {
+        $paiement = $repository->findOneBy(['idCommande' => $id]);
+
+        if (!$paiement) {
+            return $this->json(['error' => 'Aucun paiement trouvé pour cette commande'], 404);
+        }
+
+        // Mise à jour du statut à 0
+        $paiement->setStatut(0);
+        $em->persist($paiement);
+        $em->flush();
+
+        return $this->json([
+            'message' => 'Commande validée avec succès',
+            'idCommande' => $id,
+            'statut' => $paiement->getStatut()
+        ], 200);
+    }
+
 }

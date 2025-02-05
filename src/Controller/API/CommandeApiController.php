@@ -16,8 +16,10 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use App\Service\DeleteService;
 use Symfony\Component\HttpFoundation\Response;
 use App\Annotation\TokenRequired;
+use App\Entity\Paiement;
 use App\Entity\Restaurant;
 use App\Entity\Utilisateur;
+use App\Repository\DetailsCommandeRepository;
 
 class CommandeApiController extends AbstractController
 {
@@ -39,28 +41,37 @@ class CommandeApiController extends AbstractController
         ]);
     }
 
-    #[Route("/api/commande", methods: "POST")]
+    #[Route("/api/commande", methods: ["POST"])]
     function create(
         Request $request,
         EntityManagerInterface $em
     ) {
         $data = json_decode($request->getContent(), true);
-
+    
         $utilisateur = $em->getRepository(Utilisateur::class)->find($data['idUtilisateur']);
-        $restauarnt = $em->getRepository(Restaurant::class)->find($data['idRestaurant']);
-
-        if (!$utilisateur || !$restauarnt) {
-            return $this->json(['error' => 'Utilisateur ou Ingrédient non trouvé'], 404);
+        $restaurant = $em->getRepository(Restaurant::class)->find($data['idRestaurant']);
+    
+        if (!$utilisateur || !$restaurant) {
+            return $this->json(['error' => 'Utilisateur ou Restaurant non trouvé'], 404);
         }
-
+    
         $commande = new Commande();
         $commande->setIdUtilisateur($utilisateur);
-        $commande->setIdRestaurant($restauarnt);
+        $commande->setIdRestaurant($restaurant);
         $commande->setDt(new \DateTime($request->get('dt')));
-
+    
         $em->persist($commande);
+        $em->flush(); 
+    
+        $paiement = new Paiement();
+        $paiement->setIdCommande($commande);
+        $paiement->setTotal(0);
+        $paiement->setStatut(-1);
+        $paiement->setDeletedAt(null);
+    
+        $em->persist($paiement);
         $em->flush();
-
+    
         return $this->json($commande, 200, [], [
             'groups' => ['commande.create']
         ]);
@@ -109,4 +120,26 @@ class CommandeApiController extends AbstractController
 
         return new Response(null, 204);
     }
+    #[Route("/api/commande/{id}/detailsCommande", methods: ["GET"])]
+    function getDetailsCommandeByCommande(int $id, DetailsCommandeRepository $repository)
+    {
+        $detailsCommande = $repository->findBy(['idCommande' => $id]);
+
+        if (!$detailsCommande) {
+            return $this->json(['error' => 'Aucun détail de commande trouvé pour cette commande'], 404);
+        }
+
+        $result = array_map(function ($detail) {
+            return [
+                'id' => $detail->getId(),
+                'idCommande' => $detail->getIdCommande()->getId(),
+                'idPlat' => $detail->getIdPlat()->getId(),
+                'statut' => $detail->getStatut(),
+                'deletedAt' => $detail->getDeletedAt()
+            ];
+        }, $detailsCommande);
+
+        return $this->json($result, 200);
+    }
+
 }
