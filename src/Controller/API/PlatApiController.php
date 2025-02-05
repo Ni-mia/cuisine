@@ -17,6 +17,7 @@ use App\Service\DeleteService;
 use Symfony\Component\HttpFoundation\Response;
 use App\Annotation\TokenRequired;
 use App\Repository\LiaisonPlatIngredientsRepository;
+use App\Repository\PrixRepository;
 
 class PlatApiController extends AbstractController
 {
@@ -137,5 +138,49 @@ class PlatApiController extends AbstractController
         return $this->json($ingredients, 200);
     }
 
-    
+    #[Route("/api/plat/{id}/prix", methods: ["GET"])]
+    function getPrix(int $id, PlatRepository $platRepo, PrixRepository $prixRepo)
+    {
+        $plat = $platRepo->find($id);
+        
+        if (!$plat) {
+            return $this->json(['error' => 'Plat non trouvé'], 404);
+        }
+
+        $today = new \DateTime();
+
+        // Chercher le prix actif
+        $prixActuel = $prixRepo->createQueryBuilder('p')
+            ->where('p.idPlat = :plat')
+            ->andWhere(':today BETWEEN p.date_debut AND p.date_fin')
+            ->setParameter('plat', $plat)
+            ->setParameter('today', $today)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        if ($prixActuel) {
+            return $this->json([
+                'idPlat' => $plat->getId(),
+                'montant' => $prixActuel->getMontant(),
+            ], 200);
+        }
+
+        // Si aucun prix actif, récupérer le dernier prix inséré
+        $dernierPrix = $prixRepo->findOneBy(
+            ['idPlat' => $plat],
+            ['id' => 'DESC']
+        );
+
+        if ($dernierPrix) {
+            return $this->json([
+                'idPlat' => $plat->getId(),
+                'montant' => $dernierPrix->getMontant(),
+                'message' => 'deprecated price'
+            ], 200);
+        }
+
+        return $this->json(['error' => 'Aucun prix disponible pour ce plat'], 404);
+    }
+
 }
