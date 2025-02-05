@@ -16,7 +16,9 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use App\Service\DeleteService;
 use Symfony\Component\HttpFoundation\Response;
 use App\Annotation\TokenRequired;
-
+use App\Repository\CommandeRepository;
+use App\Repository\DetailsCommandeRepository;
+use App\Repository\PrixRepository;
 
 class PaiementApiController extends AbstractController
 {
@@ -112,6 +114,68 @@ class PaiementApiController extends AbstractController
             'message' => 'Commande validée avec succès',
             'idCommande' => $id,
             'statut' => $paiement->getStatut()
+        ], 200);
+    }
+    //prix total commande
+    #[Route("/api/commande/{id}/total", methods: ["GET"])]
+    function calculerTotalCommande(int $id, CommandeRepository $commandeRepo, DetailsCommandeRepository $detailsRepo, PrixRepository $prixRepo, EntityManagerInterface $em, PaiementRepository $paiementRepo)
+    {
+        $commande = $commandeRepo->find($id);
+
+        if (!$commande) {
+            return $this->json(['error' => 'Commande non trouvée'], 404);
+        }
+
+        // Récupérer tous les détails de la commande
+        $detailsCommandes = $detailsRepo->findBy(['idCommande' => $commande]);
+
+        if (!$detailsCommandes) {
+            return $this->json(['error' => 'Aucun détail trouvé pour cette commande'], 404);
+        }
+
+        $total = 0;
+        $deprecated = false;
+
+        foreach ($detailsCommandes as $detail) {
+            $plat = $detail->getIdPlat();
+
+            // Récupérer le prix actuel du plat
+            $prix = $prixRepo->createQueryBuilder('p')
+                ->where('p.idPlat = :plat')
+                ->andWhere(':today BETWEEN p.date_debut AND p.date_fin')
+                ->setParameter('plat', $plat)
+                ->setParameter('today', new \DateTime())
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+
+            if (!$prix) {
+                // Si aucun prix actif, prendre le dernier prix inséré
+                $prix = $prixRepo->findOneBy(['idPlat' => $plat], ['id' => 'DESC']);
+                $deprecated = true;
+            }
+
+            if (!$prix) {
+                return $this->json(['error' => "Aucun prix trouvé pour le plat ID {$plat->getId()}"], 400);
+            }
+
+            // Ajouter au total (quantité * prix)
+            $total += $detail->getQuantite() * $prix->getMontant();
+        }
+
+        // Mettre à jour le paiement
+        $paiement = $paiementRepo->findOneBy(['idCommande' => $commande]);
+
+        if ($paiement) {
+            $paiement->setTotal($total);
+            $em->persist($paiement);
+            $em->flush();
+        }
+
+        return $this->json([
+            'idCommande' => $commande->getId(),
+            'total' => $total,
+            'message' => $deprecated ? 'Attention : Certains prix sont obsolètes.' : 'Prix mis à jour avec succès.'
         ], 200);
     }
 
