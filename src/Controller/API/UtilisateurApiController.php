@@ -114,50 +114,17 @@ class UtilisateurApiController extends AbstractController
         return new Response(null, 204);
     }
     #[Route("/api/utilisateur/{id}/commandeActu", methods: ["GET"])]
-    function getCommandeActu(int $id, UtilisateurRepository $userRepo, PaiementRepository $paiementRepo, EntityManagerInterface $em, CommandeRepository $commandeRepo, RestaurantRepository $restaurantRepo)
+    function getCommandeActu(int $id, UtilisateurRepository $userRepo, PaiementRepository $paiementRepo, EntityManagerInterface $em, CommandeRepository $commandeRepo)
     {
         $utilisateur = $userRepo->find($id);
         if (!$utilisateur) {
             return $this->json(['error' => 'Utilisateur non trouvé'], 404);
         }
 
-        $commande = $commandeRepo->findOneBy(['idUtilisateur' => $id]);
-
-        if (!$commande) {
-            $commande = new Commande();
-            $commande->setIdUtilisateur($utilisateur);
-
-            $restaurant = $restaurantRepo->find(1);
-            if (!$restaurant) {
-                return $this->json(['error' => 'Restaurant non trouvé'], 404);
-            }
-            $commande->setIdRestaurant($restaurant);
-
-            $commande->setDt(new \DateTime());
-
-            $em->persist($commande);
-            $em->flush();
-
-            $paiement = new Paiement();
-            $paiement->setIdCommande($commande);
-            $paiement->setTotal(0);
-            $paiement->setStatut(-1);
-            $paiement->setDeletedAt(null);
-            $paiement->setDt(new \DateTime());
-
-            $em->persist($paiement);
-            $em->flush();
-
-            return $this->json([
-                'idCommande' => $commande->getId(),
-                'statutPaiement' => $paiement->getStatut()
-            ], 201);
-        }
-
-        $paiement = $paiementRepo->findOneBy([
-            'idCommande' => $commande,
-            'statut' => -1
-        ], ['id' => 'DESC']);
+        $paiement = $paiementRepo->findOneBy(
+            ['statut' => -1, 'idCommande.idUtilisateur' => $id], 
+            ['id' => 'DESC']
+        );
 
         if ($paiement) {
             return $this->json([
@@ -168,13 +135,6 @@ class UtilisateurApiController extends AbstractController
 
         $commande = new Commande();
         $commande->setIdUtilisateur($utilisateur);
-
-        $restaurant = $restaurantRepo->find(1);
-        if (!$restaurant) {
-            return $this->json(['error' => 'Restaurant non trouvé'], 404);
-        }
-        $commande->setIdRestaurant($restaurant);
-
         $commande->setDt(new \DateTime());
 
         $em->persist($commande);
@@ -185,7 +145,6 @@ class UtilisateurApiController extends AbstractController
         $paiement->setTotal(0);
         $paiement->setStatut(-1);
         $paiement->setDeletedAt(null);
-        $paiement->setDt(new \DateTime());
 
         $em->persist($paiement);
         $em->flush();
