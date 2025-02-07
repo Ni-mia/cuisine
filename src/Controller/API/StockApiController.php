@@ -38,18 +38,48 @@ class StockApiController extends AbstractController
         ]);
     }
 
-    #[Route("/api/stock", methods: "POST")]
+    #[Route("/api/stock", methods: ["POST"])]
     function create(
-        #[MapRequestPayload(serializationContext: [
-        'groups' => ['stock.create']
-        ])] Stock $stock,
-        EntityManagerInterface $em){
+        Request $request,
+        EntityManagerInterface $em,
+        RestaurantRepository $restaurantRepo,
+        IngredientsRepository $ingredientsRepo,
+        TypeMvtRepository $typeMvtRepo
+    ) {
+        $data = json_decode($request->getContent(), true);
+    
+        // Vérifier que les données nécessaires sont présentes
+        if (!isset($data['idRestaurant'], $data['idIngredient'], $data['quantite'])) {
+            return $this->json(['error' => 'Données incomplètes'], 400);
+        }
+    
+        // Récupérer les entités associées
+        $restaurant = $restaurantRepo->find($data['idRestaurant']);
+        $ingredient = $ingredientsRepo->find($data['idIngredient']);
+        $typeMvt = isset($data['idType']) ? $typeMvtRepo->find($data['idType']) : null;
+    
+        if (!$restaurant || !$ingredient) {
+            return $this->json(['error' => 'Restaurant ou Ingrédient non trouvé'], 404);
+        }
+    
+        // Créer le stock
+        $stock = new Stock();
+        $stock->setIdRestaurant($restaurant);
+        $stock->setIdIngredient($ingredient);
+        $stock->setQuantite($data['quantite']);
+        $stock->setDt(new \DateTime());
+        if ($typeMvt) {
+            $stock->setIdType($typeMvt);
+        }
+    
         $em->persist($stock);
         $em->flush();
-        return $this->json($stock, 200, [], [
+    
+        return $this->json($stock, 201, [], [
             'groups' => ['stock.show']
         ]);
     }
+    
     
 
     #[Route("/api/stock/{id}", methods: "PUT")]
