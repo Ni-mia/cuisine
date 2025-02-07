@@ -151,4 +151,20 @@ class DetailsCommandeApiController extends AbstractController
             'groups' => ['detailsCommande.create']
         ]);
     }
+
+    #[Route("/api/detailsCommande/countPlats", methods: "GET")]
+    function countPlats(EntityManagerInterface $em)
+    {
+        $query = $em->createQuery(
+            "SELECT p.id AS id, p.nom AS nomPlat, COUNT(d.id) AS commande
+            FROM App\Entity\DetailsCommande d
+            JOIN d.idPlat p
+            GROUP BY p.id"
+        );
+
+        $result = $query->getResult();
+
+        return $this->json($result, 200);
+    }
+
 }
