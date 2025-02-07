@@ -38,7 +38,7 @@ class DetailsCommandeApiController extends AbstractController
 
     #[Route("/api/detailsCommande/{id}", methods: "GET")]
     function detail(DetailsCommandeRepository $repository,int $id){
-        $detailsCommande = $repository->findById($id);
+        $detailsCommande = $repository->find($id);
         return $this->json($detailsCommande,200,[],[
             'groups' => ['detailsCommande.list']
         ]);
