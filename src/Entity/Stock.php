@@ -38,7 +38,7 @@ class Stock extends AbstractDeletableEntity
     #[Groups('stock.typemvt','stock.create')]
     private ?TypeMvt $idType = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     #[Groups('stock.list')]
     private ?\DateTimeImmutable $deletedAt = null;
 
