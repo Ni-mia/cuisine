@@ -199,4 +199,31 @@ class StockApiController extends AbstractController
         ]);
     }
 
+    #[Route("/api/stock/etat/{idIngredient}", methods: ["GET"])]
+    function etatStock(int $idIngredient, StockRepository $stockRepo, IngredientsRepository $ingredientsRepo) {
+        $ingredient = $ingredientsRepo->find($idIngredient);
+
+        if (!$ingredient) {
+            return $this->json(['error' => 'Ingrédient non trouvé'], 404);
+        }
+
+        $stocks = $stockRepo->findBy(['idIngredient' => $ingredient]);
+
+        $quantiteTotale = 0;
+
+        foreach ($stocks as $stock) {
+            if ($stock->getIdType()->getId() == 1) {
+                $quantiteTotale += $stock->getQuantite(); // Ajout des entrées
+            } elseif ($stock->getIdType()->getId() == 2) {
+                $quantiteTotale -= $stock->getQuantite(); // Soustraction des sorties
+            }
+        }
+
+        return $this->json([
+            'idIngredient' => $idIngredient,
+            'nomIngredient' => $ingredient->getNom(),
+            'quantiteDisponible' => $quantiteTotale
+        ], 200);
+    }
+
 }
