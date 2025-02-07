@@ -142,6 +142,7 @@ class CommandeApiController extends AbstractController
 
         return $this->json($result, 200);
     }
+    
     #[Route("/api/commandes/par-jour", methods: ["GET"])]
     public function getNombreCommandesParJour(CommandeRepository $commandeRepo): JsonResponse
     {
@@ -153,10 +154,11 @@ class CommandeApiController extends AbstractController
         
         $stmt = $connection->prepare($sql);
         $stmt->execute();
-        $commandes = $stmt->fetchAllAssociative();
+        $commandes = $stmt->fetchAll(\PDO::FETCH_ASSOC);
     
         return $this->json($commandes);
     }
+    
     
 
 }
