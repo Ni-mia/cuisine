@@ -159,12 +159,13 @@ class DetailsCommandeApiController extends AbstractController
             "SELECT p.id AS id, p.nom AS nomPlat, COUNT(d.id) AS commande
             FROM App\Entity\DetailsCommande d
             JOIN d.idPlat p
-            GROUP BY p.id"
+            GROUP BY p.id, p.nom"
         );
 
         $result = $query->getResult();
 
         return $this->json($result, 200);
     }
+
 
 }
