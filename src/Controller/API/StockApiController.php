@@ -16,7 +16,8 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use App\Service\DeleteService;
 use Symfony\Component\HttpFoundation\Response;
 use App\Annotation\TokenRequired;
-
+use App\Repository\IngredientsRepository;
+use App\Repository\TypeMvtRepository;
 
 class StockApiController extends AbstractController
 {
