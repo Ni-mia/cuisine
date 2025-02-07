@@ -125,4 +125,43 @@ class StockApiController extends AbstractController
 
         return new Response(null, 204);
     }
+
+    #[Route("/api/stock/add", methods: ["POST"])]
+    function add(
+        Request $request,
+        EntityManagerInterface $em,
+        IngredientsRepository $ingredientsRepo,
+        RestaurantRepository $restaurantRepo,
+        TypeMvtRepository $typeMvtRepo
+    ) {
+        $data = json_decode($request->getContent(), true);
+
+        if (!isset($data['idIngredient'], $data['quantite'], $data['dt'])) {
+            return $this->json(['error' => 'Données manquantes'], 400);
+        }
+
+        $restaurant = $restaurantRepo->find(1); // Id par défaut
+        $ingredient = $ingredientsRepo->find($data['idIngredient']);
+        $typeMvt = $typeMvtRepo->find(1); // Id par défaut
+
+        if (!$restaurant || !$ingredient || !$typeMvt) {
+            return $this->json(['error' => 'Restaurant, ingrédient ou type de mouvement non trouvé'], 404);
+        }
+
+        $stock = new Stock();
+        $stock->setIdRestaurant($restaurant);
+        $stock->setIdIngredient($ingredient);
+        $stock->setIdType($typeMvt);
+        $stock->setQuantite($data['quantite']);
+        $stock->setDt(new \DateTime($data['dt']));
+
+        $em->persist($stock);
+        $em->flush();
+
+        return $this->json($stock, 201, [], [
+            'groups' => ['stock.show']
+        ]);
+    }
+
+
 }
