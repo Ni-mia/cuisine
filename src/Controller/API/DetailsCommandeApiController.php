@@ -156,7 +156,7 @@ class DetailsCommandeApiController extends AbstractController
     function countPlats(EntityManagerInterface $em)
     {
         $query = $em->createQuery(
-            "SELECT p.id AS id, p.nom AS nomPlat AS commande
+            "SELECT p.id AS id, p.nom AS nomPlat
             FROM App\Entity\DetailsCommande d
             JOIN d.idPlat p"
         );
