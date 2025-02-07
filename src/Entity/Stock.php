@@ -18,12 +18,12 @@ class Stock extends AbstractDeletableEntity
 
     #[ORM\ManyToOne(inversedBy: 'stocks')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups('stock.restaurant')]
+    #[Groups('stock.restaurant','stock.create')]
     private ?Restaurant $idRestaurant = null;
 
     #[ORM\ManyToOne(inversedBy: 'stocks')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups('stock.ingredients')]
+    #[Groups('stock.ingredients','stock.create')]
     private ?Ingredients $idIngredient = null;
 
     #[ORM\Column]
@@ -35,7 +35,7 @@ class Stock extends AbstractDeletableEntity
     private ?\DateTimeInterface $dt = null;
 
     #[ORM\ManyToOne(inversedBy: 'stocks')]
-    #[Groups('stock.typemvt')]
+    #[Groups('stock.typemvt','stock.create')]
     private ?TypeMvt $idType = null;
 
     #[ORM\Column]
