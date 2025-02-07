@@ -168,7 +168,8 @@ class StockApiController extends AbstractController
         EntityManagerInterface $em,
         IngredientsRepository $ingredientsRepo,
         RestaurantRepository $restaurantRepo,
-        TypeMvtRepository $typeMvtRepo
+        TypeMvtRepository $typeMvtRepo,
+        StockRepository $stockRepo
     ) {
         $data = json_decode($request->getContent(), true);
 
@@ -182,6 +183,24 @@ class StockApiController extends AbstractController
 
         if (!$restaurant || !$ingredient || !$typeMvt) {
             return $this->json(['error' => 'Restaurant, ingrédient ou type de mouvement non trouvé'], 404);
+        }
+
+        $stocks = $stockRepo->findBy(['idIngredient' => $ingredient]);
+        $quantiteDisponible = 0;
+
+        foreach ($stocks as $stock) {
+            if ($stock->getIdType()->getId() == 1) {
+                $quantiteDisponible += $stock->getQuantite();
+            } elseif ($stock->getIdType()->getId() == 2) {
+                $quantiteDisponible -= $stock->getQuantite();
+            }
+        }
+
+        if ($data['quantite'] > $quantiteDisponible) {
+            return $this->json([
+                'error' => 'Quantité demandée supérieure au stock disponible',
+                'quantiteDisponible' => $quantiteDisponible
+            ], 400);
         }
 
         $stock = new Stock();
