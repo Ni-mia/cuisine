@@ -146,17 +146,30 @@ class CommandeApiController extends AbstractController
     #[Route("/api/commandes/par-jour", methods: ["GET"])]
     public function commandeJour(CommandeRepository $repository): JsonResponse
     {
+        // Récupérer toutes les commandes
         $commandes = $repository->createQueryBuilder('c')
-            ->select("DATE_FORMAT(c.dt, '%Y-%m-%d') as jour, COUNT(c.id) as nombre")
-            ->groupBy('jour')
-            ->orderBy('jour', 'ASC')
+            ->select('c.dt')
             ->getQuery()
             ->getResult();
 
-        return $this->json($commandes, 200, [], [
+        // Formatage des commandes pour regrouper par jour
+        $commandesParJour = [];
+        foreach ($commandes as $commande) {
+            $jour = $commande['dt']->format('Y-m-d'); // Formater la date au format souhaité
+            if (!isset($commandesParJour[$jour])) {
+                $commandesParJour[$jour] = 0;
+            }
+            $commandesParJour[$jour]++;
+        }
+
+        // Retourner les résultats sous forme de tableau JSON
+        return $this->json(array_map(function ($jour, $nombre) {
+            return ['jour' => $jour, 'nombre' => $nombre];
+        }, array_keys($commandesParJour), $commandesParJour), 200, [], [
             'groups' => ['commande.list']
         ]);
     }
+
 
     
 
