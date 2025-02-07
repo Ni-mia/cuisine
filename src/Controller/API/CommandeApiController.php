@@ -20,6 +20,7 @@ use App\Entity\Paiement;
 use App\Entity\Restaurant;
 use App\Entity\Utilisateur;
 use App\Repository\DetailsCommandeRepository;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 class CommandeApiController extends AbstractController
 {
@@ -141,5 +142,17 @@ class CommandeApiController extends AbstractController
 
         return $this->json($result, 200);
     }
-    
+    #[Route("/api/commandes/par-jour", methods: ["GET"])]
+    public function getNombreCommandesParJour(CommandeRepository $commandeRepo): JsonResponse
+    {
+        $commandes = $commandeRepo->createQueryBuilder('c')
+            ->select("DATE_FORMAT(c.dt, '%Y-%m-%d') as jour, COUNT(c.id) as nombre")
+            ->groupBy('jour')
+            ->orderBy('jour', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return $this->json($commandes);
+    }
+
 }
