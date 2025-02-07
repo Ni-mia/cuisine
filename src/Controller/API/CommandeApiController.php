@@ -142,23 +142,22 @@ class CommandeApiController extends AbstractController
 
         return $this->json($result, 200);
     }
-    
+
     #[Route("/api/commandes/par-jour", methods: ["GET"])]
-    public function getNombreCommandesParJour(CommandeRepository $commandeRepo): JsonResponse
+    public function commandeJour(CommandeRepository $repository): JsonResponse
     {
-        $connection = $commandeRepo->getEntityManager()->getConnection();
-        $sql = "SELECT DATE_FORMAT(c.dt, '%Y-%m-%d') as jour, COUNT(c.id) as nombre
-                FROM commande c
-                GROUP BY jour
-                ORDER BY jour ASC";
-        
-        $stmt = $connection->prepare($sql);
-        $stmt->execute();
-        $commandes = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-    
-        return $this->json($commandes);
+        $commandes = $repository->createQueryBuilder('c')
+            ->select("DATE_FORMAT(c.dt, '%Y-%m-%d') as jour, COUNT(c.id) as nombre")
+            ->groupBy('jour')
+            ->orderBy('jour', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return $this->json($commandes, 200, [], [
+            'groups' => ['commande.list']
+        ]);
     }
-    
+
     
 
 }
