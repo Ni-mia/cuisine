@@ -12,7 +12,7 @@ class DetailsCommande extends AbstractDeletableEntity
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['detailsCommande.show','detailsCommande.list'])]
+    #[Groups(['detailsCommande.show'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'detailsCommandes')]
