@@ -203,7 +203,7 @@ class UtilisateurApiController extends AbstractController
         return $this->json(['message' => 'Connexion réussie']);
     }
 
-    #[Route("/api/utilisateur", methods: "POST")]
+    #[Route("/api/signIn", methods: "POST")]
     public function signIn(
         Request $request,
         EntityManagerInterface $em
