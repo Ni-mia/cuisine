@@ -23,6 +23,7 @@ use App\Repository\CommandeRepository;
 use App\Repository\PaiementRepository;
 use App\Repository\PlatRepository;
 use App\Repository\UtilisateurRepository;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 class DetailsCommandeApiController extends AbstractController
 {
@@ -32,9 +33,22 @@ class DetailsCommandeApiController extends AbstractController
     function list(DetailsCommandeRepository $repository){
         $detailsCommandelist = $repository->findAll();
         return $this->json($detailsCommandelist,200,[],[
-            'groups' => ['detailsCommande.list']
+            'groups' => ['detailsCommande.list'],
         ]);
     }
+
+    #[Route("/api/detailsCommande2", methods: "GET")]
+    function list2(DetailsCommandeRepository $repository, SerializerInterface $serializer)
+    {
+        // Charger les détails avec les relations idCommande et idPlat
+        $detailsCommandelist = $repository->findAll();
+
+        // Sérialiser toutes les données sans utiliser de groupes
+        $json = $serializer->serialize($detailsCommandelist, 'json');
+
+        return new JsonResponse($json, 200, [], true);
+    }
+
 
     #[Route("/api/detailsCommande/{id<\d+>}", methods: "GET")]
     function detail(DetailsCommandeRepository $repository,int $id){
