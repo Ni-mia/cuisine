@@ -38,22 +38,18 @@ class DetailsCommandeApiController extends AbstractController
     }
 
     #[Route("/api/detailsCommande2", methods: "GET")]
-    function list2(DetailsCommandeRepository $repository, SerializerInterface $serializer)
+    function list2(EntityManagerInterface $em)
     {
-        // Charger les détails avec les relations idCommande et idPlat
-        $detailsCommandelist = $repository->findAll();
+        $query = $em->createQuery(
+            "SELECT *
+            FROM App\Entity\DetailsCommande d"
+        );
+        
 
-        // Sérialiser manuellement avec gestion des références circulaires
-        $json = $serializer->serialize($detailsCommandelist, 'json', [
-            'circular_reference_limit' => 1,  // Limiter la profondeur pour éviter les références circulaires
-            'circular_reference_handler' => function($object) {
-                return $object->getId();  // Retourner un id ou toute autre donnée utile
-            }
-        ]);
+        $result = $query->getResult();
 
-        return new JsonResponse($json, 200, [], true);
+        return $this->json($result, 200);
     }
-
 
     #[Route("/api/detailsCommande/{id<\d+>}", methods: "GET")]
     function detail(DetailsCommandeRepository $repository,int $id){
