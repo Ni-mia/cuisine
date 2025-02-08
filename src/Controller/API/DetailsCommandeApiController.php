@@ -31,11 +31,18 @@ class DetailsCommandeApiController extends AbstractController
     #[Route("/api/detailsCommande", methods: "GET")]
     function list(DetailsCommandeRepository $repository)
     {
-        $detailsCommandelist = $repository->findAll();
+        // Charger les détails avec les relations idCommande et idPlat
+        $detailsCommandelist = $repository->createQueryBuilder('d')
+            ->leftJoin('d.idCommande', 'c')
+            ->leftJoin('d.idPlat', 'p')
+            ->addSelect('c', 'p')  // Ajouter les entités liées dans le SELECT
+            ->getQuery()
+            ->getResult();
 
+        // Tester les valeurs des objets liés
         foreach ($detailsCommandelist as $detailsCommande) {
-            dump($detailsCommande->getIdCommande());
-            dump($detailsCommande->getIdPlat());
+            dump($detailsCommande->getIdCommande()); // Afficher idCommande
+            dump($detailsCommande->getIdPlat());     // Afficher idPlat
         }
 
         return $this->json($detailsCommandelist, 200, [], [
