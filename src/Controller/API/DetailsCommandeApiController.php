@@ -29,15 +29,20 @@ class DetailsCommandeApiController extends AbstractController
 {
 
     #[Route("/api/detailsCommande", methods: "GET")]
-    public function list(DetailsCommandeRepository $repository, SerializerInterface $serializer)
+    function list(DetailsCommandeRepository $repository)
     {
         $detailsCommandelist = $repository->findAll();
-        
-        // Sérialiser manuellement
-        $json = $serializer->serialize($detailsCommandelist, 'json', ['groups' => ['detailsCommande.list', 'detailsCommande.show']]);
-        
-        return new JsonResponse($json, 200, [], true);
+
+        foreach ($detailsCommandelist as $detailsCommande) {
+            dump($detailsCommande->getIdCommande());
+            dump($detailsCommande->getIdPlat());
+        }
+
+        return $this->json($detailsCommandelist, 200, [], [
+            'groups' => ['detailsCommande.list', 'detailsCommande.show']
+        ]);
     }
+
 
 
     #[Route("/api/detailsCommande/{id<\d+>}", methods: "GET")]
