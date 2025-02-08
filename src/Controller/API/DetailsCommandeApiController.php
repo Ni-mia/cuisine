@@ -29,7 +29,7 @@ class DetailsCommandeApiController extends AbstractController
 {
 
     #[Route("/api/detailsCommande", methods: "GET")]
-    function list(DetailsCommandeRepository $repository)
+    function list(DetailsCommandeRepository $repository, SerializerInterface $serializer)
     {
         // Charger les détails avec les relations idCommande et idPlat
         $detailsCommandelist = $repository->createQueryBuilder('d')
@@ -45,10 +45,12 @@ class DetailsCommandeApiController extends AbstractController
             dump($detailsCommande->getIdPlat());     // Afficher idPlat
         }
 
-        return $this->json($detailsCommandelist, 200, [], [
-            'groups' => ['detailsCommande.list', 'detailsCommande.show']
-        ]);
+        // Sérialiser manuellement sans utiliser de groupes
+        $json = $serializer->serialize($detailsCommandelist, 'json');
+
+        return new JsonResponse($json, 200, [], true);
     }
+
 
 
 
