@@ -181,5 +181,30 @@ class UtilisateurApiController extends AbstractController
         return $this->json(['idCommande' => $nouvelleCommande->getId()], 201);
     }
 
+    #[Route("/api/login", methods: "POST")]
+    public function login(
+        Request $request,
+        EntityManagerInterface $em,
+        UserPasswordEncoderInterface $passwordEncoder,
+        JWTManagerInterface $jwtManager
+    ) {
+        $data = json_decode($request->getContent(), true);
+
+        // Vérifier si l'email existe
+        $utilisateur = $em->getRepository(Utilisateur::class)->findOneBy(['mail' => $data['mail']]);
+        if (!$utilisateur) {
+            return $this->json(['error' => 'Utilisateur non trouvé'], 404);
+        }
+
+        // Vérifier le mot de passe
+        if (!$passwordEncoder->isPasswordValid($utilisateur, $data['mdp'])) {
+            return $this->json(['error' => 'Mot de passe incorrect'], 401);
+        }
+
+        // Générer un token JWT
+        $token = $jwtManager->create($utilisateur);
+
+        return $this->json(['token' => $token]);
+}
 
 }
