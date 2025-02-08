@@ -43,8 +43,13 @@ class DetailsCommandeApiController extends AbstractController
         // Charger les détails avec les relations idCommande et idPlat
         $detailsCommandelist = $repository->findAll();
 
-        // Sérialiser toutes les données sans utiliser de groupes
-        $json = $serializer->serialize($detailsCommandelist, 'json');
+        // Sérialiser manuellement avec gestion des références circulaires
+        $json = $serializer->serialize($detailsCommandelist, 'json', [
+            'circular_reference_limit' => 1,  // Limiter la profondeur pour éviter les références circulaires
+            'circular_reference_handler' => function($object) {
+                return $object->getId();  // Retourner un id ou toute autre donnée utile
+            }
+        ]);
 
         return new JsonResponse($json, 200, [], true);
     }
