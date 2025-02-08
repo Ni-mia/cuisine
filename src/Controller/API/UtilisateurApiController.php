@@ -197,7 +197,9 @@ class UtilisateurApiController extends AbstractController
             return $this->json(['error' => 'Mot de passe incorrect'], 401);
         }
 
-        return $this->json(['message' => 'Connexion réussie']);
+        return $this->json($utilisateur, 200, [], [
+            'groups' => ['utilisateur.show']
+        ]);
     }
 
     #[Route("/api/signIn", methods: "POST")]
@@ -223,7 +225,7 @@ class UtilisateurApiController extends AbstractController
         $em->flush();
 
         return $this->json($utilisateur, 200, [], [
-            'groups' => ['utilisateur.create']
+            'groups' => ['utilisateur.show']
         ]);
     }
 
