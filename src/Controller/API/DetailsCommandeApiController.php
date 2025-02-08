@@ -41,15 +41,17 @@ class DetailsCommandeApiController extends AbstractController
     function list2(EntityManagerInterface $em)
     {
         $query = $em->createQuery(
-            "SELECT d.id AS id, d.idCommande AS commande, d.idPlat AS plat
-            FROM App\Entity\DetailsCommande d"
+            "SELECT d.id AS id, c.id AS commande, p.id AS plat
+            FROM App\Entity\DetailsCommande d
+            JOIN d.idCommande c
+            JOIN d.idPlat p"
         );
-        
 
         $result = $query->getResult();
 
         return $this->json($result, 200);
     }
+
 
     #[Route("/api/detailsCommande/{id<\d+>}", methods: "GET")]
     function detail(DetailsCommandeRepository $repository,int $id){
