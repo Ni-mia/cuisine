@@ -41,7 +41,7 @@ class DetailsCommandeApiController extends AbstractController
     function list2(EntityManagerInterface $em)
     {
         $query = $em->createQuery(
-            "SELECT d.id AS id, c.id AS commande, p.id AS plat
+            "SELECT d.id AS id, c.id AS commande, p.id AS plat, d.statut as statut, d. deletedAt as deletedAt 
             FROM App\Entity\DetailsCommande d
             JOIN d.idCommande c
             JOIN d.idPlat p"
