@@ -184,9 +184,7 @@ class UtilisateurApiController extends AbstractController
     #[Route("/api/login", methods: "POST")]
     public function login(
         Request $request,
-        EntityManagerInterface $em,
-        UserPasswordEncoderInterface $passwordEncoder,
-        JWTManagerInterface $jwtManager
+        EntityManagerInterface $em
     ) {
         $data = json_decode($request->getContent(), true);
 
@@ -196,15 +194,44 @@ class UtilisateurApiController extends AbstractController
             return $this->json(['error' => 'Utilisateur non trouvé'], 404);
         }
 
-        // Vérifier le mot de passe
-        if (!$passwordEncoder->isPasswordValid($utilisateur, $data['mdp'])) {
+        // Vérifier le mot de passe (sans cryptage pour l'instant)
+        if ($utilisateur->getMdp() !== $data['mdp']) {
             return $this->json(['error' => 'Mot de passe incorrect'], 401);
         }
 
-        // Générer un token JWT
-        $token = $jwtManager->create($utilisateur);
+        // Si tout est bon, on peut répondre avec un message simple (sans token pour l'instant)
+        return $this->json(['message' => 'Connexion réussie']);
+    }
 
-        return $this->json(['token' => $token]);
-}
+    #[Route("/api/utilisateur", methods: "POST")]
+    public function signIn(
+        Request $request,
+        EntityManagerInterface $em
+    ) {
+        $data = json_decode($request->getContent(), true);
+
+        // Vérifier si l'email existe déjà
+        $existingUser = $em->getRepository(Utilisateur::class)->findOneBy(['mail' => $data['mail']]);
+        if ($existingUser) {
+            return $this->json(['error' => 'Email déjà utilisé'], 400);
+        }
+
+        // Créer un nouvel utilisateur
+        $utilisateur = new Utilisateur();
+        $utilisateur->setNom($data['nom']);
+        $utilisateur->setNomUtilisateur($data['nomUtilisateur']);
+        $utilisateur->setMdp($data['mdp']); // Utilisation du mot de passe en clair (pas de hachage pour l'instant)
+        $utilisateur->setMail($data['mail']);
+
+        // Sauvegarder l'utilisateur dans la base de données
+        $em->persist($utilisateur);
+        $em->flush();
+
+        // Répondre avec l'utilisateur créé
+        return $this->json($utilisateur, 200, [], [
+            'groups' => ['utilisateur.create']
+        ]);
+    }
+
 
 }

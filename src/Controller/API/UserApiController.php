@@ -145,40 +145,5 @@ class UserApiController extends AbstractController
 
         return new JsonResponse(['token' => $user->getApiToken()]);
     }
-    #[Route("/api/utilisateur", methods: "POST")]
-public function signIn(
-    Request $request,
-    EntityManagerInterface $em
-) {
-    $data = json_decode($request->getContent(), true);
-
-    // Récupérer le rôle avec l'ID statique 1
-    $role = $em->getRepository(Role::class)->find(1);
-    if (!$role) {
-        return $this->json(['error' => 'Role non trouvé'], 404);
-    }
-
-    // Vérifier si l'email existe déjà
-    $existingUser = $em->getRepository(Utilisateur::class)->findOneBy(['mail' => $data['mail']]);
-    if ($existingUser) {
-        return $this->json(['error' => 'Email déjà utilisé'], 400);
-    }
-
-    // Créer un nouvel utilisateur avec le rôle ID 1
-    $utilisateur = new Utilisateur();
-    $utilisateur->setIdRole($role);
-    $utilisateur->setNom($data['nom']);
-    $utilisateur->setMdp(password_hash($data['mdp'], PASSWORD_BCRYPT)); // Sécuriser le mot de passe
-    $utilisateur->setMail($data['mail']);
-    $utilisateur->setNomUtilisateur($data['nomUtilisateur']);
-
-    // Sauvegarder l'utilisateur dans la base de données
-    $em->persist($utilisateur);
-    $em->flush();
-
-    return $this->json($utilisateur, 200, [], [
-        'groups' => ['utilisateur.create']
-    ]);
-}
 
 }
