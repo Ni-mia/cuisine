@@ -20,6 +20,7 @@ use App\Entity\Ingredients;
 use App\Entity\Plat;
 use App\Repository\IngredientsRepository;
 use App\Repository\PlatRepository;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 class LiaisonPlatIngredientsApiController extends AbstractController
 {
@@ -154,6 +155,29 @@ class LiaisonPlatIngredientsApiController extends AbstractController
         return $this->json($liaisonList, 201, [], [
             'groups' => ['liaisonPlatIngredients.create']
         ]);
+    }
+    //getRecette
+    #[Route("/api/liaisonPlatIngredients/getRecette/{idPlat}", methods: "GET")]
+    function getRecette(int $idPlat, LiaisonPlatIngredientsRepository $repository): JsonResponse
+    {
+        // Récupérer les liaisons entre le plat et les ingrédients
+        $liaisons = $repository->findBy(['idPlat' => $idPlat]);
+
+        // Vérifier si le plat a des ingrédients
+        if (!$liaisons) {
+            return $this->json(['error' => 'Aucun ingrédient trouvé pour ce plat'], 404);
+        }
+
+        // Construire la réponse
+        $recette = array_map(function ($liaison) {
+            return [
+                'idIngredient' => $liaison->getIdIngredients()->getId(),
+                'nomIngredient' => $liaison->getIdIngredients()->getNom(),
+                'quantite' => $liaison->getQuantite(),
+            ];
+        }, $liaisons);
+
+        return $this->json($recette);
     }
 
 }
