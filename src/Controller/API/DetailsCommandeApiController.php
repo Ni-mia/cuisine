@@ -168,5 +168,36 @@ class DetailsCommandeApiController extends AbstractController
         return $this->json($result, 200);
     }
 
+    #[Route("/api/detailsCommande/{id}/cooking", methods: ["PUT"])]
+    function preparerPlat(int $id, DetailsCommandeRepository $repository, EntityManagerInterface $em)
+    {
+        $detailsCommande = $repository->findOneBy(['id' => $id]);
+        if (!$detailsCommande) {
+            return $this->json(['error' => 'Aucun detailsCommande trouvé pour cet id'], 404);
+        }
+        $detailsCommande->setStatut(0);
+        $em->persist($detailsCommande);
+        $em->flush();
 
+        return $this->json([
+            'message' => 'Debut de la preparation du plat du detailsCommande',
+            'statut' => $detailsCommande->getStatut()
+        ], 200);
+    }
+    #[Route("/api/detailsCommande/{id}/livrer", methods: ["PUT"])]
+    function livrerPlat(int $id, DetailsCommandeRepository $repository, EntityManagerInterface $em)
+    {
+        $detailsCommande = $repository->findOneBy(['id' => $id]);
+        if (!$detailsCommande) {
+            return $this->json(['error' => 'Aucun detailsCommande trouvé pour cet id'], 404);
+        }
+        $detailsCommande->setStatut(1);
+        $em->persist($detailsCommande);
+        $em->flush();
+
+        return $this->json([
+            'message' => 'Plat livrer avec succes',
+            'statut' => $detailsCommande->getStatut()
+        ], 200);
+    }
 }
