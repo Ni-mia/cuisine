@@ -228,6 +228,34 @@ class UtilisateurApiController extends AbstractController
             'groups' => ['utilisateur.show']
         ]);
     }
+    #[Route("/api/login/admin", methods: "POST")]
+    public function loginAdmin(
+        Request $request,
+        EntityManagerInterface $em
+    ) {
+        $data = json_decode($request->getContent(), true);
+
+        // Vérifier si l'utilisateur existe avec l'email donné
+        $utilisateur = $em->getRepository(Utilisateur::class)->findOneBy(['mail' => $data['mail']]);
+        if (!$utilisateur) {
+            return $this->json(['error' => 'Utilisateur non trouvé'], 404);
+        }
+
+        // Vérifier si le mot de passe est correct
+        if ($utilisateur->getMdp() !== $data['mdp']) {
+            return $this->json(['error' => 'Mot de passe incorrect'], 401);
+        }
+
+        // Vérifier si l'utilisateur a le rôle d'admin (idRole == 2)
+        if ($utilisateur->getIdRole()->getId() !== 2) {
+            return $this->json(['error' => 'Accès réservé aux administrateurs'], 403);
+        }
+
+        // Si l'utilisateur est un admin, renvoyer les informations de l'utilisateur
+        return $this->json($utilisateur, 200, [], [
+            'groups' => ['utilisateur.show']
+        ]);
+    }
 
 
 }
