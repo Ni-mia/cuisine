@@ -23,36 +23,18 @@ use App\Repository\CommandeRepository;
 use App\Repository\PaiementRepository;
 use App\Repository\PlatRepository;
 use App\Repository\UtilisateurRepository;
-use Symfony\Component\HttpFoundation\JsonResponse;
 
 class DetailsCommandeApiController extends AbstractController
 {
-
+    //create,edit,list,detail,delete
     #[Route("/api/detailsCommande", methods: "GET")]
-function list(DetailsCommandeRepository $repository, SerializerInterface $serializer)
-{
-    // Charger les détails avec les relations idCommande et idPlat
-    $detailsCommandelist = $repository->createQueryBuilder('d')
-        ->leftJoin('d.idCommande', 'c')
-        ->leftJoin('d.idPlat', 'p')
-        ->addSelect('c', 'p')  // Ajouter les entités liées dans le SELECT
-        ->getQuery()
-        ->getResult();
-
-    // Sérialiser manuellement avec gestion des références circulaires
-    $json = $serializer->serialize($detailsCommandelist, 'json', [
-        'circular_reference_limit' => 1,  // Limiter la profondeur pour éviter les références circulaires
-        'circular_reference_handler' => function($object) {
-            return $object->getId();  // Retourner un id ou toute autre donnée utile
-        }
-    ]);
-
-    return new JsonResponse($json, 200, [], true);
-}
-
-
-
-
+    // #[TokenRequired]
+    function list(DetailsCommandeRepository $repository){
+        $detailsCommandelist = $repository->findAll();
+        return $this->json($detailsCommandelist,200,[],[
+            'groups' => ['detailsCommande.list']
+        ]);
+    }
 
     #[Route("/api/detailsCommande/{id<\d+>}", methods: "GET")]
     function detail(DetailsCommandeRepository $repository,int $id){
