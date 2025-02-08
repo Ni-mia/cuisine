@@ -37,20 +37,6 @@ class DetailsCommandeApiController extends AbstractController
         ]);
     }
 
-    #[Route("/api/detailsCommande2", methods: "GET")]
-    function list2(EntityManagerInterface $em)
-    {
-        $query = $em->createQuery(
-            "SELECT *
-            FROM App\Entity\DetailsCommande d"
-        );
-        
-
-        $result = $query->getResult();
-
-        return $this->json($result, 200);
-    }
-
     #[Route("/api/detailsCommande/{id<\d+>}", methods: "GET")]
     function detail(DetailsCommandeRepository $repository,int $id){
         $detailsCommande = $repository->find($id);
