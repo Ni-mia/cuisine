@@ -235,25 +235,25 @@ class DetailsCommandeApiController extends AbstractController
     }
 
     #[Route("/api/commande/{id}/prepare", methods: ["POST"])]
-public function prepareCommande(int $id, DetailsCommandeRepository $repository, EntityManagerInterface $em)
-{
-    // Récupérer tous les détails de la commande par l'ID
-    $detailsCommande = $repository->findBy(['idCommande' => $id]);
+    public function prepareCommande(int $id, DetailsCommandeRepository $repository, EntityManagerInterface $em)
+    {
+        // Récupérer tous les détails de la commande par l'ID
+        $detailsCommande = $repository->findBy(['idCommande' => $id]);
 
-    // Vérifier si des détails de commande ont été trouvés
-    if (!$detailsCommande) {
-        return $this->json(['error' => 'Aucun détail de commande trouvé pour cette commande'], 404);
+        // Vérifier si des détails de commande ont été trouvés
+        if (!$detailsCommande) {
+            return $this->json(['error' => 'Aucun détail de commande trouvé pour cette commande'], 404);
+        }
+
+        // Mettre à jour le statut de chaque détail de commande à 0
+        foreach ($detailsCommande as $detail) {
+            $detail->setStatut(0);  // Assumer qu'il y a une méthode setStatut sur ton entité
+        }
+
+        // Persister les modifications dans la base de données
+        $em->flush();
+
+        return $this->json(['message' => 'La commande a été préparée, tous les statuts ont été mis à 0'], 200);
     }
-
-    // Mettre à jour le statut de chaque détail de commande à 0
-    foreach ($detailsCommande as $detail) {
-        $detail->setStatut(0);  // Assumer qu'il y a une méthode setStatut sur ton entité
-    }
-
-    // Persister les modifications dans la base de données
-    $em->flush();
-
-    return $this->json(['message' => 'La commande a été préparée, tous les statuts ont été mis à 0'], 200);
-}
 
 }
