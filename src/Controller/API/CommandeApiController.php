@@ -68,6 +68,7 @@ class CommandeApiController extends AbstractController
         $paiement->setIdCommande($commande);
         $paiement->setTotal(0);
         $paiement->setStatut(-1);
+        $paiement->setDt(new \DateTime($request->get('dt')));
         $paiement->setDeletedAt(null);
     
         $em->persist($paiement);
