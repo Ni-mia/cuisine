@@ -176,6 +176,7 @@ class DetailsCommandeApiController extends AbstractController
             "SELECT p.id AS id, p.nom AS nomPlat, COUNT(DISTINCT d.id) AS commande
             FROM App\Entity\DetailsCommande d
             JOIN d.idPlat p
+            WHERE d.statut = 3
             GROUP BY p.id, p.nom"
         );
         
