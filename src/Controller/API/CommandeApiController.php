@@ -143,6 +143,8 @@ class CommandeApiController extends AbstractController
         return $this->json($result, 200);
     }
 
+
+
     #[Route("/api/commandes/par-jour", methods: ["GET"])]
     public function commandeJour(CommandeRepository $repository): JsonResponse
     {
@@ -167,7 +169,38 @@ class CommandeApiController extends AbstractController
         ]);
     }
 
+    #[Route("/api/commande/simpleDetails", methods: ["GET"])]
+    function getSimpleDetailsCommandeAll(DetailsCommandeRepository $detailsRepo, CommandeRepository $commandeRepo)
+    {
+        // 🔹 Récupérer toutes les commandes (triées du plus récent au plus ancien)
+        $commandes = $commandeRepo->createQueryBuilder('c')
+            ->orderBy('c.id', 'DESC') // Tri par ID commande décroissant
+            ->getQuery()
+            ->getResult();
 
+        // 🔹 Construire la réponse
+        $result = array_map(function ($commande) use ($detailsRepo) {
+            $utilisateur = $commande->getIdUtilisateur();
+            $nomUtilisateur = $utilisateur ? $utilisateur->getNomUtilisateur() : 'Inconnu';
+
+            // 🔹 Récupérer les détails de commande pour cette commande
+            $detailsCommande = $detailsRepo->findBy(
+                ['idCommande' => $commande->getId()],
+                ['id' => 'DESC'] // Tri par ID décroissant
+            );
+
+            // 🔹 Extraire les ID des plats
+            $idPlats = array_map(fn($detail) => $detail->getIdPlat()->getId(), $detailsCommande);
+
+            return [
+                'idCommande' => $commande->getId(), // ✅ Ajout de l'ID commande
+                'nomUtilisateur' => $nomUtilisateur,
+                'idPlats' => $idPlats
+            ];
+        }, $commandes);
+
+        return $this->json($result, 200);
+    }
     
 
 }

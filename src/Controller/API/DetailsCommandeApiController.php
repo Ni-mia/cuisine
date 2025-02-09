@@ -235,7 +235,7 @@ class DetailsCommandeApiController extends AbstractController
         ], 200);
     }
 
-    #[Route("/api/commande/{id}/prepare", methods: ["POST"])]
+    #[Route("/api/detailsCommande/{id}/prepare", methods: ["PUT"])]
     public function prepareCommande(int $id, DetailsCommandeRepository $repository, EntityManagerInterface $em)
     {
         // Récupérer tous les détails de la commande par l'ID
@@ -256,5 +256,8 @@ class DetailsCommandeApiController extends AbstractController
 
         return $this->json(['message' => 'La commande a été préparée, tous les statuts ont été mis à 0'], 200);
     }
+
+
+    
 
 }
