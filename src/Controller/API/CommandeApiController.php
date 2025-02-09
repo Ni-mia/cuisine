@@ -34,7 +34,7 @@ class CommandeApiController extends AbstractController
         ]);
     }
 
-    #[Route("/api/commande/{id}", methods: "GET")]
+    #[Route("/api/commande/{id<\d+>}", methods: "GET")]
     function detail(CommandeRepository $repository,int $id){
         $commande = $repository->findById($id);
         return $this->json($commande,200,[],[
