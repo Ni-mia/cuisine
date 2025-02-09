@@ -31,6 +31,16 @@ class PlatApiController extends AbstractController
         ]);
     }
 
+    #[Route("/api/platsActif", methods: "GET")]
+    function listActif(PlatRepository $repository){
+        $platlist = $repository->findBy(['deletedAt' => null]);
+
+        return $this->json($platlist, 200, [], [
+            'groups' => ['plats.list']
+        ]);
+    }
+
+
     #[Route("/api/plat/{id}", methods: "GET")]
     function detail(PlatRepository $repository,int $id){
         $plat = $repository->findById($id);
@@ -119,7 +129,7 @@ class PlatApiController extends AbstractController
             throw new NotFoundHttpException('Plats non trouvé');
         }
 
-        $deleteService->hardDelete($plat);
+        $deleteService->softDelete($plat);
 
         return new Response(null, 204);
     }
