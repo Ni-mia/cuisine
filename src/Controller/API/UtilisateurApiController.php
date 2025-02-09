@@ -265,12 +265,10 @@ public function signIn(
             return $this->json(['error' => 'Création de compte Firebase échouée', 'details' => $firebaseData], 400);
         }
 
-        // 🔹 Récupérer les infos Firebase
         $firebaseUid = $firebaseData['localId'];
         $email = $firebaseData['email'];
 
-        // 🔹 Vérifier si l’utilisateur existe déjà
-        $existingUser = $em->getRepository(Utilisateur::class)->findOneBy(['firebaseId' => $firebaseUid]);
+        $existingUser = $em->getRepository(Utilisateur::class)->findOneBy(['FirebaseId' => $firebaseUid]);
 
         if ($existingUser) {
             return $this->json(['message' => 'Utilisateur déjà inscrit'], 200);
