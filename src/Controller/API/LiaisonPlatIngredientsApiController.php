@@ -33,6 +33,20 @@ class LiaisonPlatIngredientsApiController extends AbstractController
             'groups' => ['liaisonPlatIngredients.list']
         ]);
     }
+    #[Route("/api/liaisonPlatIngredients2", methods: "GET")]
+    function list2(EntityManagerInterface $em)
+    {
+        $query = $em->createQuery(
+            "SELECT l.id AS id, p.id AS idPlat, i.id as idIngredients, l.deletedAt as deletedAt 
+            FROM App\Entity\liaisonPlatIngredients l
+            JOIN d.idPlat p
+            JOIN d.idIngredients i"
+        );
+
+        $result = $query->getResult();
+
+        return $this->json($result, 200);
+    }
 
     #[Route("/api/liaisonPlatIngredients/{id<\d+>}", methods: "GET")]
     function detail(LiaisonPlatIngredientsRepository $repository,int $id){
