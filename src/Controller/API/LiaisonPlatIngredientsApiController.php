@@ -34,7 +34,7 @@ class LiaisonPlatIngredientsApiController extends AbstractController
         ]);
     }
 
-    #[Route("/api/liaisonPlatIngredients/{id}", methods: "GET")]
+    #[Route("/api/liaisonPlatIngredients/{id<\d+>}", methods: "GET")]
     function detail(LiaisonPlatIngredientsRepository $repository,int $id){
         $liaisonPlatIngredients = $repository->findById($id);
         return $this->json($liaisonPlatIngredients,200,[],[
