@@ -171,6 +171,7 @@ class LiaisonPlatIngredientsApiController extends AbstractController
         // Construire la réponse
         $recette = array_map(function ($liaison) {
             return [
+                'idPlat' => $liaison->getId(),
                 'idIngredient' => $liaison->getIdIngredients()->getId(),
                 'nomIngredient' => $liaison->getIdIngredients()->getNom(),
                 'quantite' => $liaison->getQuantite(),
@@ -178,6 +179,42 @@ class LiaisonPlatIngredientsApiController extends AbstractController
         }, $liaisons);
 
         return $this->json($recette);
+    }
+
+    //getRecetteAll
+    #[Route("/api/liaisonPlatIngredients/getRecetteAll", methods: "GET")]
+    function getRecetteAll(LiaisonPlatIngredientsRepository $repository): JsonResponse
+    {
+        // Récupérer toutes les liaisons plat-ingrédients
+        $liaisons = $repository->findAll();
+
+        // Vérifier s'il y a des données
+        if (!$liaisons) {
+            return $this->json(['error' => 'Aucune recette trouvée'], 404);
+        }
+
+        // Organiser les données sous forme de recettes groupées par idPlat
+        $recettes = [];
+
+        foreach ($liaisons as $liaison) {
+            $idPlat = $liaison->getIdPlat()->getId();
+            if (!isset($recettes[$idPlat])) {
+                $recettes[$idPlat] = [
+                    'idPlat' => $idPlat,
+                    'nomPlat' => $liaison->getIdPlat()->getNom(), // Si la classe Plat a un nom
+                    'ingredients' => [],
+                ];
+            }
+
+            $recettes[$idPlat]['ingredients'][] = [
+                'idIngredient' => $liaison->getIdIngredients()->getId(),
+                'nomIngredient' => $liaison->getIdIngredients()->getNom(),
+                'quantite' => $liaison->getQuantite(),
+            ];
+        }
+
+        // Convertir en tableau indexé pour le JSON
+        return $this->json(array_values($recettes));
     }
 
 }
