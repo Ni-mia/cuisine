@@ -19,6 +19,7 @@ use App\Annotation\TokenRequired;
 use App\Repository\CommandeRepository;
 use App\Repository\DetailsCommandeRepository;
 use App\Repository\PrixRepository;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 class PaiementApiController extends AbstractController
 {
@@ -177,6 +178,34 @@ class PaiementApiController extends AbstractController
             'total' => $total,
             'message' => $deprecated ? 'Attention : Certains prix sont obsolètes.' : 'Prix mis à jour avec succès.'
         ], 200);
+    }
+
+
+    #[Route("/api/chiffre-affaire/par-jour", methods: ["GET"])]
+    public function chiffreAffaireParJour(PaiementRepository $paiementRepo): JsonResponse
+    {
+        // 🔹 Récupérer tous les paiements (non supprimés)
+        $paiements = $paiementRepo->createQueryBuilder('p')
+            ->select('p.dt, p.Total')
+            ->where('p.deletedAt IS NULL') // Ignorer les paiements supprimés
+            ->getQuery()
+            ->getResult();
+
+        $chiffreAffaireParJour = [];
+
+        foreach ($paiements as $paiement) {
+            $jour = $paiement['dt']->format('Y-m-d');
+            $montant = (float) $paiement['Total']; // Convertir en float pour éviter les erreurs
+
+            if (!isset($chiffreAffaireParJour[$jour])) {
+                $chiffreAffaireParJour[$jour] = 0;
+            }
+            $chiffreAffaireParJour[$jour] += $montant; // Ajouter le montant au total du jour
+        }
+
+        return $this->json(array_map(function ($jour, $total) {
+            return ['jour' => $jour, 'chiffreAffaire' => $total];
+        }, array_keys($chiffreAffaireParJour), $chiffreAffaireParJour), 200);
     }
 
 }
