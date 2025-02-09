@@ -37,7 +37,7 @@ class LiaisonPlatIngredientsApiController extends AbstractController
     function list2(EntityManagerInterface $em)
     {
         $query = $em->createQuery(
-            "SELECT l.id AS id, p.id AS idPlat, i.id as idIngredients, l.deletedAt as deletedAt 
+            "SELECT l.id AS id, p.id AS idPlat,p.nom AS nomPlat, i.id as idIngredients, i.nom AS nomIngredients, l.quantite AS quantite, l.deletedAt as deletedAt 
             FROM App\Entity\LiaisonPlatIngredients l
             JOIN l.idPlat p
             JOIN l.idIngredients i"

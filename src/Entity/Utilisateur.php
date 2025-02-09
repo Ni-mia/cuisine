@@ -49,6 +49,9 @@ class Utilisateur
     #[Groups('utilisateur.list')]
     private ?\DateTimeImmutable $deletedAt = null;
 
+    #[ORM\Column(length: 255,nullable: true)]
+    private ?string $FirebaseId = null;
+
     public function __construct()
     {
         $this->commandes = new ArrayCollection();
@@ -164,6 +167,18 @@ class Utilisateur
     public function setDeletedAt(?\DateTimeImmutable $deletedAt): static
     {
         $this->deletedAt = $deletedAt;
+
+        return $this;
+    }
+
+    public function getFirebaseId(): ?string
+    {
+        return $this->FirebaseId;
+    }
+
+    public function setFirebaseId(string $FirebaseId): static
+    {
+        $this->FirebaseId = $FirebaseId;
 
         return $this;
     }

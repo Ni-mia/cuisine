@@ -21,6 +21,7 @@ use App\Entity\Paiement;
 use App\Entity\Role;
 use App\Repository\CommandeRepository;
 use App\Repository\PaiementRepository;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 class UtilisateurApiController extends AbstractController
 {
@@ -202,7 +203,7 @@ class UtilisateurApiController extends AbstractController
         ]);
     }
 
-    #[Route("/api/signIn", methods: "POST")]
+    /*#[Route("/api/signIn", methods: "POST")]
     public function signIn(
         Request $request,
         EntityManagerInterface $em
@@ -227,7 +228,72 @@ class UtilisateurApiController extends AbstractController
         return $this->json($utilisateur, 200, [], [
             'groups' => ['utilisateur.show']
         ]);
+    }*/
+    
+    #[Route("/api/signIn", methods: "POST")]
+    public function signIn(
+        Request $request,
+        EntityManagerInterface $em
+    ): JsonResponse {
+        $data = json_decode($request->getContent(), true);
+
+        if (!isset($data['idToken'])) {
+            return $this->json(['error' => 'Token Firebase manquant'], 400);
+        }
+
+        try {
+            // 🔹 Vérifier le token Firebase via l’API REST
+            $firebaseUrl = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyDXw-PqZrNfGI1oUBYCjKGE3DL81tRSSqQ";
+            $postData = json_encode(["idToken" => $data['idToken']]);
+
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $firebaseUrl);
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+
+            $response = curl_exec($ch);
+            curl_close($ch);
+
+            $firebaseData = json_decode($response, true);
+
+            if (!isset($firebaseData['users'][0]['localId'])) {
+                return $this->json(['error' => 'Token invalide'], 401);
+            }
+
+            // 🔹 Récupérer les infos Firebase
+            $firebaseUid = $firebaseData['users'][0]['localId'];
+            $email = $firebaseData['users'][0]['email'] ?? null;
+
+            // 🔹 Vérifier si l’utilisateur existe déjà
+            $existingUser = $em->getRepository(Utilisateur::class)->findOneBy(['firebaseId' => $firebaseUid]);
+
+            if ($existingUser) {
+                return $this->json(['message' => 'Utilisateur déjà inscrit'], 200);
+            }
+
+            // 🔹 Créer un nouvel utilisateur
+            $utilisateur = new Utilisateur();
+            $utilisateur->setNom($data['nom']);
+            $utilisateur->setNomUtilisateur($data['nomUtilisateur']);
+            $utilisateur->setMdp($data['mdp']); 
+            $utilisateur->setMail($email);
+            $utilisateur->setFirebaseId($firebaseUid); // Enregistrement de l’ID Firebase
+            $utilisateur->setIdRole($em->getRepository(Role::class)->find(1));
+
+            $em->persist($utilisateur);
+            $em->flush();
+
+            return $this->json($utilisateur, 201, [], [
+                'groups' => ['utilisateur.show']
+            ]);
+        } catch (\Throwable $e) {
+            return $this->json(['error' => 'Erreur lors de l’authentification', 'message' => $e->getMessage()], 500);
+        }
     }
+
+
     #[Route("/api/login/admin", methods: "POST")]
     public function loginAdmin(
         Request $request,
