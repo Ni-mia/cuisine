@@ -286,11 +286,7 @@ class UtilisateurApiController extends AbstractController
             $em->persist($utilisateur);
             $em->flush();
 
-            return $this->json([
-                'message' => 'Utilisateur créé avec succès',
-                'firebaseId' => $firebaseUid,
-                'utilisateur' => $utilisateur
-            ], 201, [], [
+            return $this->json($utilisateur, 200, [], [
                 'groups' => ['utilisateur.show']
             ]);
         } catch (\Throwable $e) {

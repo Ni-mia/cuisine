@@ -50,6 +50,7 @@ class Utilisateur
     private ?\DateTimeImmutable $deletedAt = null;
 
     #[ORM\Column(length: 255,nullable: true)]
+    #[Groups(['utilisateur.show', 'utilisateur.create', 'utilisateur.update','utilisateur.list'])]
     private ?string $FirebaseId = null;
 
     public function __construct()
